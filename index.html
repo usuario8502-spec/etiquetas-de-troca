@@ -63,9 +63,9 @@
     .btn:active { background-color: #1557b0; transform: scale(0.98); }
     .btn-secondary { background-color: #6c757d; margin-top: 8px; }
 
-    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0 15px 0; font-weight: 600; color: #555; background: #f8f9fa; padding: 12px; border-radius: 10px; }
-    .stats div { font-size: 0.9rem; }
-    .stats span { color: #1a73e8; font-weight: bold; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 15px 0; font-weight: 600; color: #555; background: #f8f9fa; padding: 12px; border-radius: 10px; text-align: center; }
+    .stats div { font-size: 0.85rem; }
+    .stats span { color: #1a73e8; font-weight: bold; display: block; font-size: 1.1rem; margin-top: 2px; }
     
     .search-bar { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; outline: none; }
     
@@ -78,7 +78,7 @@
     .badge-drawn { background-color: #e8f0fe; color: #1a73e8; }
     .badge-used { background-color: #e6f4ea; color: #137333; }
 
-    .btn-action { background: #f8f9fa; border: 1px solid #ddd; font-size: 1rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; margin-right: 4px; }
+    .btn-action { background: #f8f9fa; border: 1px solid #ddd; font-size: 0.9rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; margin-right: 4px; }
     .btn-action:hover { background-color: #e8f0fe; border-color: #1a73e8; }
 
     .empty-msg { text-align: center; color: #888; padding: 25px; }
@@ -114,12 +114,12 @@
     
     <div class="tutorial-step">
       <h4>1. Gerar Nova Etiqueta</h4>
-      <p>Clique no botão azul <strong>"Sortear Próximo Número"</strong>. O número será sorteado e marcado como utilizado automaticamente.</p>
+      <p>Clique no botão azul <strong>"Gerar etiqueta"</strong>. O número será sorteado e marcado como utilizado automaticamente.</p>
     </div>
 
     <div class="tutorial-step">
       <h4>2. Reutilizar Etiquetas (Apenas ADM)</h4>
-      <p>Apenas administradores podem devolver um número sorteado de volta para a fila de disponíveis utilizando o botão 🔄.</p>
+      <p>Apenas administradores podem devolver uma etiqueta gerada de volta para a fila de disponíveis utilizando o botão 🔄.</p>
     </div>
 
     <button class="btn" onclick="fecharModal('tutorial-modal')">Entendi, Começar!</button>
@@ -186,20 +186,18 @@
   <div id="alert-warning" class="alert-banner hidden"></div>
 
   <div class="card">
-    <div style="font-size: 1rem; color: #666; font-weight: 500;">Número Sorteado:</div>
     <div id="display" class="display-number">----------</div>
-    <button class="btn" onclick="sortear()">Sortear Próximo Número</button>
+    <button class="btn" onclick="sortear()">Gerar etiqueta</button>
   </div>
 
   <div class="card">
     <div class="stats">
-      <div>Total: <span id="stat-total">0</span></div>
-      <div>Sorteados: <span id="stat-drawn">0</span></div>
-      <div>Disponíveis: <span id="stat-available">0</span></div>
-      <div>Utilizados: <span id="stat-used">0</span></div>
+      <div>Total <span id="stat-total">0</span></div>
+      <div>Disponíveis <span id="stat-available">0</span></div>
+      <div>Utilizadas <span id="stat-used">0</span></div>
     </div>
     
-    <input type="text" id="search" class="search-bar" placeholder="Buscar número..." oninput="renderTable()">
+    <input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta gerada..." oninput="renderTable()">
     
     <div class="table-container">
       <table>
@@ -406,25 +404,23 @@
     auth.signOut();
   }
 
-  // 1. GERAR AUTOMATICAMENTE = MARCAR COMO UTILIZADA
   function sortear() {
     const disponiveis = items.filter(i => !i.drawn);
     if (disponiveis.length === 0) {
-      alert("Todos os números já foram sorteados!");
+      alert("Todas as etiquetas já foram geradas!");
       return;
     }
     const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
     escolhido.drawn = true;
-    escolhido.used = true; // Entra automaticamente como utilizada!
+    escolhido.used = true;
     document.getElementById('display').innerText = escolhido.id;
     saveData();
   }
 
-  // 2. REUTILIZAR ETIQUETA (Apenas para ADM)
   function reutilizarEtiqueta(index) {
     if (!currentUserProfile || currentUserProfile.role !== 'adm') return;
     const item = items[index];
-    if (confirm(`Deseja REUTILIZAR a etiqueta ${item.id}?\nEla voltará para a fila de disponíveis para ser sorteada novamente.`)) {
+    if (confirm(`Deseja REUTILIZAR a etiqueta ${item.id}?\nEla voltará para a fila de disponíveis para ser gerada novamente.`)) {
       item.drawn = false;
       item.used = false;
       saveData();
@@ -448,7 +444,6 @@
     const used = items.filter(i => i.used).length;
 
     document.getElementById('stat-total').innerText = total;
-    document.getElementById('stat-drawn').innerText = drawn;
     document.getElementById('stat-available').innerText = available;
     document.getElementById('stat-used').innerText = used;
   }
@@ -466,18 +461,18 @@
 
     tbody.innerHTML = '';
 
-    let filtrados = [];
+    // Filtra apenas as etiquetas JÁ GERADAS
+    const gerados = items.filter(i => i.drawn);
+    let filtrados = gerados;
 
     if (searchVal !== '') {
-      filtrados = items.filter(i => i.id.toString().includes(searchVal));
-    } else {
-      filtrados = items.filter(i => i.drawn);
+      filtrados = gerados.filter(i => i.id.toString().includes(searchVal));
     }
 
     const colSpan = isAdm ? 4 : 3;
 
     if (filtrados.length === 0) {
-      const mensagem = searchVal !== '' ? 'Nenhum número encontrado.' : 'Nenhum número sorteado ainda.';
+      const mensagem = searchVal !== '' ? 'Nenhum número gerado encontrado.' : 'Nenhuma etiqueta gerada ainda.';
       tbody.innerHTML = `<tr><td colspan="${colSpan}" class="empty-msg">${mensagem}</td></tr>`;
       return;
     }
@@ -486,10 +481,7 @@
       const globalIndex = items.findIndex(i => i.id === item.id);
       const tr = document.createElement('tr');
       
-      const statusHtml = item.drawn 
-        ? '<span class="badge badge-drawn">Sorteado</span>' 
-        : '<span style="color:#aaa;">Disponível</span>';
-
+      const statusHtml = '<span class="badge badge-drawn">Gerada</span>';
       const usedBadgeHtml = item.used 
         ? '<span class="badge badge-used">Sim</span>' 
         : '<span style="color:#aaa;">Não</span>';

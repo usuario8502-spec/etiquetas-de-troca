@@ -434,17 +434,50 @@
     document.getElementById('stat-used').innerText = used;
   }
 
-  function renderTable() {
-    const searchVal = document.getElementById('search').value.toLowerCase();
+    function renderTable() {
+    const searchVal = document.getElementById('search').value.trim().toLowerCase();
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
 
-    const filtrados = items.filter(i => i.id.toString().includes(searchVal));
+    let filtrados = [];
+
+    if (searchVal !== '') {
+      // Se digitou algo na busca, pesquisa em todos os números
+      filtrados = items.filter(i => i.id.toString().includes(searchVal));
+    } else {
+      // Se a busca estiver vazia, mostra APENAS os números que JÁ foram sorteados
+      filtrados = items.filter(i => i.drawn);
+    }
 
     if (filtrados.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">Nenhum número encontrado.</td></tr>';
+      const mensagem = searchVal !== '' ? 'Nenhum número encontrado.' : 'Nenhum número sorteado ainda.';
+      tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">${mensagem}</td></tr>`;
       return;
     }
+
+    filtrados.forEach((item) => {
+      const globalIndex = items.findIndex(i => i.id === item.id);
+      const tr = document.createElement('tr');
+      
+      const statusHtml = item.drawn 
+        ? '<span class="badge badge-drawn">Sorteado</span>' 
+        : '<span style="color:#aaa;">Disponível</span>';
+
+      const checkboxHtml = `
+        <label class="checkbox-container">
+          <input type="checkbox" ${item.used ? 'checked' : ''} onchange="toggleUsed(${globalIndex})">
+          ${item.used ? '<span class="badge badge-used">Sim</span>' : 'Não'}
+        </label>
+      `;
+
+      tr.innerHTML = `
+        <td><strong>${item.id}</strong></td>
+        <td>${statusHtml}</td>
+        <td>${checkboxHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
     filtrados.forEach((item) => {
       const globalIndex = items.findIndex(i => i.id === item.id);

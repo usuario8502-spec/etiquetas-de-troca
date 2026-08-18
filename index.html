@@ -78,8 +78,9 @@
     .badge-drawn { background-color: #e8f0fe; color: #1a73e8; }
     .badge-used { background-color: #e6f4ea; color: #137333; }
 
-    .checkbox-container { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; }
-    .checkbox-container input { width: 20px; height: 20px; accent-color: #1a73e8; cursor: pointer; }
+    .btn-action { background: #f8f9fa; border: 1px solid #ddd; font-size: 1rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; margin-right: 4px; }
+    .btn-action:hover { background-color: #e8f0fe; border-color: #1a73e8; }
+
     .empty-msg { text-align: center; color: #888; padding: 25px; }
 
     .tutorial-step { text-align: left; background: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px; margin-bottom: 12px; border-radius: 0 8px 8px 0; }
@@ -113,12 +114,12 @@
     
     <div class="tutorial-step">
       <h4>1. Gerar Nova Etiqueta</h4>
-      <p>Clique no botão azul <strong>"Sortear Próximo Número"</strong> para obter uma nova etiqueta.</p>
+      <p>Clique no botão azul <strong>"Sortear Próximo Número"</strong>. O número será sorteado e marcado como utilizado automaticamente.</p>
     </div>
 
     <div class="tutorial-step">
-      <h4>2. Marcar como Utilizada</h4>
-      <p>Marque a caixa de seleção na tabela referente ao código utilizado.</p>
+      <h4>2. Reutilizar Etiquetas (Apenas ADM)</h4>
+      <p>Apenas administradores podem devolver um número sorteado de volta para a fila de disponíveis utilizando o botão 🔄.</p>
     </div>
 
     <button class="btn" onclick="fecharModal('tutorial-modal')">Entendi, Começar!</button>
@@ -206,7 +207,8 @@
           <tr>
             <th>Número</th>
             <th>Status</th>
-            <th>Utilizado</th>
+            <th>Utilizada</th>
+            <th id="th-acoes" class="hidden">Ações ADM</th>
           </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -239,7 +241,6 @@
   let userProfiles = {};
   let currentUserProfile = null;
 
-  // Sincroniza a lista de usuários no banco para permitir o login via username
   db.ref('app_users').on('value', (snapshot) => {
     userProfiles = snapshot.val() || {};
   });
@@ -405,6 +406,7 @@
     auth.signOut();
   }
 
+  // 1. GERAR AUTOMATICAMENTE = MARCAR COMO UTILIZADA
   function sortear() {
     const disponiveis = items.filter(i => !i.drawn);
     if (disponiveis.length === 0) {
@@ -413,13 +415,30 @@
     }
     const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
     escolhido.drawn = true;
+    escolhido.used = true; // Entra automaticamente como utilizada!
     document.getElementById('display').innerText = escolhido.id;
     saveData();
   }
 
-  function toggleUsed(index) {
-    items[index].used = !items[index].used;
-    saveData();
+  // 2. REUTILIZAR ETIQUETA (Apenas para ADM)
+  function reutilizarEtiqueta(index) {
+    if (!currentUserProfile || currentUserProfile.role !== 'adm') return;
+    const item = items[index];
+    if (confirm(`Deseja REUTILIZAR a etiqueta ${item.id}?\nEla voltará para a fila de disponíveis para ser sorteada novamente.`)) {
+      item.drawn = false;
+      item.used = false;
+      saveData();
+    }
+  }
+
+  function editarEtiqueta(index) {
+    if (!currentUserProfile || currentUserProfile.role !== 'adm') return;
+    const item = items[index];
+    const novoValor = prompt("Editar número da etiqueta:", item.id);
+    if (novoValor !== null && novoValor.trim() !== "") {
+      item.id = novoValor.trim();
+      saveData();
+    }
   }
 
   function updateStats() {
@@ -437,21 +456,29 @@
   function renderTable() {
     const searchVal = document.getElementById('search').value.trim().toLowerCase();
     const tbody = document.getElementById('table-body');
+    const thAcoes = document.getElementById('th-acoes');
+    const isAdm = currentUserProfile && currentUserProfile.role === 'adm';
+
+    if (thAcoes) {
+      if (isAdm) thAcoes.classList.remove('hidden');
+      else thAcoes.classList.add('hidden');
+    }
+
     tbody.innerHTML = '';
 
     let filtrados = [];
 
     if (searchVal !== '') {
-      // Se tiver busca, filtra na lista inteira
       filtrados = items.filter(i => i.id.toString().includes(searchVal));
     } else {
-      // Se não houver busca, exibe APENAS os já sorteados
       filtrados = items.filter(i => i.drawn);
     }
 
+    const colSpan = isAdm ? 4 : 3;
+
     if (filtrados.length === 0) {
       const mensagem = searchVal !== '' ? 'Nenhum número encontrado.' : 'Nenhum número sorteado ainda.';
-      tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">${mensagem}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${colSpan}" class="empty-msg">${mensagem}</td></tr>`;
       return;
     }
 
@@ -463,17 +490,25 @@
         ? '<span class="badge badge-drawn">Sorteado</span>' 
         : '<span style="color:#aaa;">Disponível</span>';
 
-      const checkboxHtml = `
-        <label class="checkbox-container">
-          <input type="checkbox" ${item.used ? 'checked' : ''} onchange="toggleUsed(${globalIndex})">
-          ${item.used ? '<span class="badge badge-used">Sim</span>' : 'Não'}
-        </label>
-      `;
+      const usedBadgeHtml = item.used 
+        ? '<span class="badge badge-used">Sim</span>' 
+        : '<span style="color:#aaa;">Não</span>';
+
+      let acoesHtml = '';
+      if (isAdm) {
+        acoesHtml = `
+          <td>
+            <button class="btn-action" onclick="reutilizarEtiqueta(${globalIndex})" title="Reutilizar (Volta para a fila)">🔄 Reutilizar</button>
+            <button class="btn-action" onclick="editarEtiqueta(${globalIndex})" title="Editar Número">✏️</button>
+          </td>
+        `;
+      }
 
       tr.innerHTML = `
         <td><strong>${item.id}</strong></td>
         <td>${statusHtml}</td>
-        <td>${checkboxHtml}</td>
+        <td>${usedBadgeHtml}</td>
+        ${acoesHtml}
       `;
       tbody.appendChild(tr);
     });

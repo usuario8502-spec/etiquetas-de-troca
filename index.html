@@ -239,7 +239,7 @@
   let userProfiles = {};
   let currentUserProfile = null;
 
-  // Carrega a lista de usuários no banco imediatamente para permitir login por username
+  // Sincroniza a lista de usuários no banco para permitir o login via username
   db.ref('app_users').on('value', (snapshot) => {
     userProfiles = snapshot.val() || {};
   });
@@ -434,7 +434,7 @@
     document.getElementById('stat-used').innerText = used;
   }
 
-    function renderTable() {
+  function renderTable() {
     const searchVal = document.getElementById('search').value.trim().toLowerCase();
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
@@ -442,10 +442,10 @@
     let filtrados = [];
 
     if (searchVal !== '') {
-      // Se digitou algo na busca, pesquisa em todos os números
+      // Se tiver busca, filtra na lista inteira
       filtrados = items.filter(i => i.id.toString().includes(searchVal));
     } else {
-      // Se a busca estiver vazia, mostra APENAS os números que JÁ foram sorteados
+      // Se não houver busca, exibe APENAS os já sorteados
       filtrados = items.filter(i => i.drawn);
     }
 
@@ -454,30 +454,6 @@
       tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">${mensagem}</td></tr>`;
       return;
     }
-
-    filtrados.forEach((item) => {
-      const globalIndex = items.findIndex(i => i.id === item.id);
-      const tr = document.createElement('tr');
-      
-      const statusHtml = item.drawn 
-        ? '<span class="badge badge-drawn">Sorteado</span>' 
-        : '<span style="color:#aaa;">Disponível</span>';
-
-      const checkboxHtml = `
-        <label class="checkbox-container">
-          <input type="checkbox" ${item.used ? 'checked' : ''} onchange="toggleUsed(${globalIndex})">
-          ${item.used ? '<span class="badge badge-used">Sim</span>' : 'Não'}
-        </label>
-      `;
-
-      tr.innerHTML = `
-        <td><strong>${item.id}</strong></td>
-        <td>${statusHtml}</td>
-        <td>${checkboxHtml}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
 
     filtrados.forEach((item) => {
       const globalIndex = items.findIndex(i => i.id === item.id);

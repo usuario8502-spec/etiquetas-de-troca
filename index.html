@@ -57,7 +57,9 @@
     .btn-reset { background-color: #dc3545; }
     .btn-reset:active { background-color: #bd2130; }
 
-    .display-number { font-size: 2.2rem; font-weight: 800; color: #1a73e8; letter-spacing: 2px; margin: 15px 0; min-height: 50px; word-break: break-all; }
+    /* Estilo do Visor de Número */
+    .display-number { font-size: 2.2rem; font-weight: 800; color: #1a73e8; letter-spacing: 2px; margin: 15px 0; min-height: 50px; word-break: break-all; display: flex; align-items: center; justify-content: center; }
+    .display-number.placeholder-text { font-size: 1.05rem; font-weight: 500; color: #777; letter-spacing: normal; }
     
     .btn { background-color: #1a73e8; color: white; border: none; width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
     .btn:active { background-color: #1557b0; transform: scale(0.98); }
@@ -83,10 +85,6 @@
 
     .empty-msg { text-align: center; color: #888; padding: 25px; }
 
-    .tutorial-step { text-align: left; background: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px; margin-bottom: 12px; border-radius: 0 8px 8px 0; }
-    .tutorial-step h4 { margin: 0 0 5px 0; color: #1a73e8; font-size: 0.95rem; }
-    .tutorial-step p { margin: 0; font-size: 0.85rem; color: #555; }
-
     .hidden { display: none !important; }
   </style>
 </head>
@@ -103,26 +101,6 @@
     <div style="margin-top: 15px;">
       <button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button>
     </div>
-  </div>
-</div>
-
-<!-- Modal Tutorial -->
-<div id="tutorial-modal" class="screen-overlay hidden">
-  <div class="auth-card">
-    <h1 style="margin-top:0; color:#1a73e8;">📖 Passo a Passo</h1>
-    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Aprenda a utilizar o sistema de etiquetas:</p>
-    
-    <div class="tutorial-step">
-      <h4>1. Gerar Nova Etiqueta</h4>
-      <p>Clique no botão azul <strong>"Gerar etiqueta"</strong>. O número será sorteado e marcado como utilizado automaticamente.</p>
-    </div>
-
-    <div class="tutorial-step">
-      <h4>2. Reutilizar Etiquetas (Apenas ADM)</h4>
-      <p>Apenas administradores podem devolver uma etiqueta gerada de volta para a fila de disponíveis utilizando o botão 🔄.</p>
-    </div>
-
-    <button class="btn" onclick="fecharModal('tutorial-modal')">Entendi, Começar!</button>
   </div>
 </div>
 
@@ -175,7 +153,6 @@
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>
     <div class="user-actions">
-      <button class="btn-user-bar" onclick="abrirModal('tutorial-modal')">❓ Ajuda</button>
       <button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button>
       <button class="btn-user-bar" onclick="fazerLogout()">Sair</button>
     </div>
@@ -186,7 +163,7 @@
   <div id="alert-warning" class="alert-banner hidden"></div>
 
   <div class="card">
-    <div id="display" class="display-number">----------</div>
+    <div id="display" class="display-number placeholder-text">Clique no botão abaixo para gerar sua etiqueta</div>
     <button class="btn" onclick="sortear()">Gerar etiqueta</button>
   </div>
 
@@ -413,7 +390,11 @@
     const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
     escolhido.drawn = true;
     escolhido.used = true;
-    document.getElementById('display').innerText = escolhido.id;
+    
+    const displayEl = document.getElementById('display');
+    displayEl.innerText = escolhido.id;
+    displayEl.classList.remove('placeholder-text'); // Remove estilo de placeholder e destaca o número
+    
     saveData();
   }
 
@@ -461,7 +442,6 @@
 
     tbody.innerHTML = '';
 
-    // Filtra apenas as etiquetas JÁ GERADAS
     const gerados = items.filter(i => i.drawn);
     let filtrados = gerados;
 
@@ -512,7 +492,11 @@
         i.drawn = false;
         i.used = false;
       });
-      document.getElementById('display').innerText = '----------';
+      
+      const displayEl = document.getElementById('display');
+      displayEl.innerText = 'Clique no botão abaixo para gerar sua etiqueta';
+      displayEl.classList.add('placeholder-text');
+      
       saveData();
       fecharModal('adm-panel-modal');
     }

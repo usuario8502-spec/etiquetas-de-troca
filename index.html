@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a73e8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Etiquetas de trocas</title>
+  
+  <!-- Biblioteca PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+
+  <!-- SDKs do Firebase (Versão Compatível) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; user-select: none; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { text-align: center; color: #1a73e8; margin: 10px 0 20px 0; font-size: 1.8rem; }
+    
+    .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; text-align: center; }
+    
+    .alert-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; text-align: center; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    
+    .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+    .full-bg { background: #f0f2f5; }
+    .auth-card { background: white; width: 100%; max-width: 420px; padding: 25px 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); text-align: center; }
+    .auth-card input, .auth-card select { width: 100%; padding: 13px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 0.95rem; outline: none; }
+    .auth-card input:focus, .auth-card select:focus { border-color: #1a73e8; }
+    
+    .link-btn { color: #1a73e8; background: none; border: none; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-top: 10px; display: inline-block; text-decoration: underline; }
+
+    .user-bar { display: flex; justify-content: space-between; align-items: center; background: #e8f0fe; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; font-weight: 600; color: #1a73e8; flex-wrap: wrap; gap: 8px; }
+    .user-actions { display: flex; gap: 6px; }
+    
+    .btn-user-bar { background: transparent; border: 1px solid #1a73e8; color: #1a73e8; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+    .btn-adm-panel { background: #1a73e8; border: none; color: white; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+    
+    .btn-adm { background-color: #28a745; }
+    .btn-adm:active { background-color: #218838; }
+    .btn-info { background-color: #17a2b8; }
+    .btn-info:active { background-color: #117a8b; }
+    
+    .btn-reset { background-color: #dc3545; }
+    .btn-reset:active { background-color: #bd2130; }
+
+    .display-number { font-size: 2.5rem; font-weight: 800; color: #1a73e8; letter-spacing: 2px; margin: 15px 0; min-height: 50px; }
+    
+    .btn { background-color: #1a73e8; color: white; border: none; width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
+    .btn:active { background-color: #1557b0; transform: scale(0.98); }
+    .btn-secondary { background-color: #6c757d; margin-top: 8px; }
+
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0 15px 0; font-weight: 600; color: #555; background: #f8f9fa; padding: 12px; border-radius: 10px; }
+    .stats div { font-size: 0.9rem; }
+    .stats span { color: #1a73e8; font-weight: bold; }
+    
+    .search-bar { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; outline: none; }
+    
+    .table-container { max-height: 350px; overflow-y: auto; background: white; border-radius: 10px; border: 1px solid #e0e0e0; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 8px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
+    th { background-color: #f8f9fa; position: sticky; top: 0; z-index: 1; color: #666; }
+    
+    .badge { padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+    .badge-drawn { background-color: #e8f0fe; color: #1a73e8; }
+    .badge-used { background-color: #e6f4ea; color: #137333; }
+    .badge-adm-clickable { cursor: pointer; border: 1px dashed #137333; }
+    .badge-adm-clickable:hover { background-color: #ceead6; }
+
+    .checkbox-container { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; }
+    .checkbox-container input { width: 20px; height: 20px; accent-color: #1a73e8; cursor: pointer; }
+    .empty-msg { text-align: center; color: #888; padding: 25px; }
+    
+    .btn-action { padding: 6px 10px; border-radius: 6px; border: none; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+    .btn-edit { background-color: #ffc107; color: #212529; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    
+    .tutorial-step { text-align: left; background: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px; margin-bottom: 12px; border-radius: 0 8px 8px 0; }
+    .tutorial-step h4 { margin: 0 0 5px 0; color: #1a73e8; font-size: 0.95rem; }
+    .tutorial-step p { margin: 0; font-size: 0.85rem; color: #555; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- Tela de Login (Somente Usuário) -->
+<div id="login-screen" class="screen-overlay full-bg">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Login</h1>
+    <input type="text" id="login-username" placeholder="Nome de Usuário">
+    <input type="password" id="login-pass" placeholder="Senha">
+    <button class="btn" onclick="fazerLogin()">Entrar</button>
+    
+    <div style="margin-top: 15px;">
+      <button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tutorial -->
+<div id="tutorial-modal" class="screen-overlay hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0; color:#1a73e8;">📖 Passo a Passo</h1>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Aprenda a utilizar o sistema de etiquetas:</p>
+    
+    <div class="tutorial-step">
+      <h4>1. Gerar Nova Etiqueta</h4>
+      <p>Clique no botão azul <strong>"Sortear Próximo Número"</strong> no topo da tela para sortear uma nova etiqueta disponível.</p>
+    </div>
+
+    <div class="tutorial-step">
+      <h4>2. Marcar como Utilizada</h4>
+      <p>Após colar ou utilizar a etiqueta fisicamente, marque a caixa <strong>[  ] Sim</strong> na tabela referente ao código sorteado.</p>
+    </div>
+
+    <div class="tutorial-step">
+      <h4>3. Identificar Etiquetas Usadas</h4>
+      <p>Quando uma etiqueta for utilizada, o status mudará para o selo verde <span class="badge badge-used">Sim</span> indicando que ela já foi finalizada.</p>
+    </div>
+
+    <button class="btn" onclick="fecharModal('tutorial-modal')">Entendi, Começar!</button>
+  </div>
+</div>
+
+<!-- Modal Painel do ADM -->
+<div id="adm-panel-modal" class="screen-overlay hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Painel de Controle ADM</h1>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Gerenciamento restrito do sistema</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button>
+      <button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button>
+      <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)">
+      
+      <button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button>
+      <button class="btn btn-secondary" onclick="fecharModal('adm-panel-modal')">Fechar Painel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cadastro de Usuário -->
+<div id="register-screen" class="screen-overlay hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Novo Usuário</h1>
+    <input type="text" id="reg-username" placeholder="Nome do Usuário">
+    <input type="email" id="reg-email" placeholder="E-mail do Usuário">
+    <input type="password" id="reg-pass" placeholder="Senha (mínimo 6 caracteres)">
+    <select id="reg-role">
+      <option value="usuario">Perfil: Usuário Comum</option>
+      <option value="adm">Perfil: Administrador (ADM)</option>
+    </select>
+    <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário no Firebase</button>
+    <button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button>
+  </div>
+</div>
+
+<!-- Tela de Recuperação de Senha -->
+<div id="forgot-screen" class="screen-overlay full-bg hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Resetar Senha</h1>
+    <p style="font-size:0.85rem; color:#666;">Informe seu nome de usuário para receber o link de redefinição de senha no e-mail cadastrado.</p>
+    <input type="text" id="forgot-input" placeholder="Nome de Usuário">
+    <button class="btn" onclick="recuperarSenha()">Enviar E-mail de Redefinição</button>
+    <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar ao Login</button>
+  </div>
+</div>
+
+<!-- Aplicação Principal -->
+<div id="app-screen" class="container hidden">
+  <div class="user-bar">
+    <span id="user-info">Usuário Logado</span>
+    <div class="user-actions">
+      <button class="btn-user-bar" onclick="abrirModal('tutorial-modal')">❓ Ajuda</button>
+      <button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button>
+      <button class="btn-user-bar" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <h1>Etiquetas de trocas</h1>
+
+  <div id="alert-warning" class="alert-banner hidden"></div>
+
+  <div class="card">
+    <div style="font-size: 1rem; color: #666; font-weight: 500;">Número Sorteado:</div>
+    <div id="display" class="display-number">----------</div>
+    <button class="btn" onclick="sortear()">Sortear Próximo Número</button>
+  </div>
+
+  <div class="card">
+    <div class="stats">
+      <div>Total: <span id="stat-total">0</span></div>
+      <div>Sorteados: <span id="stat-drawn">0</span></div>
+      <div>Disponíveis: <span id="stat-available">0</span></div>
+      <div>Utilizados: <span id="stat-used">0</span></div>
+    </div>
+    
+    <input type="text" id="search" class="search-bar" placeholder="Buscar número..." oninput="renderTable()">
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr id="table-header"></tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y",
+    authDomain: "etiquetas-de-troca.firebaseapp.com",
+    databaseURL: "https://etiquetas-de-troca-default-rtdb.firebaseio.com",
+    projectId: "etiquetas-de-troca",
+    storageBucket: "etiquetas-de-troca.firebasestorage.app",
+    messagingSenderId: "383713360586",
+    appId: "1:383713360586:web:9ed1aefd0da9d6013e5233"
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
+
+  // Aplicação secundária para criação de contas pelo ADM sem perder a sessão atual
+  const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
+  const secondaryAuth = secondaryApp.auth();
+
+  const START_NUM = 1611004001;
+  const END_NUM = 1611004530;
+  let items = [];
+  let userProfiles = {};
+  let currentUserProfile = null;
+
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      db.ref('app_users/' + user.uid).once('value', (snapshot) => {
+        currentUserProfile = snapshot.val() || { username: user.email.split('@')[0], role: 'usuario', email: user.email };
+        carregarPainel();
+      });
+    } else {
+      currentUserProfile = null;
+      document.getElementById('app-screen').classList.add('hidden');
+      mudarTela('login-screen');
+    }
+  });
+
+  function initDataSync() {
+    db.ref('blue_numbers_data').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        items = data;
+      } else {
+        items = [];
+        for (let i = START_NUM; i <= END_NUM; i++) {
+          items.push({ id: i.toString(), drawn: false, used: false });
+        }
+        saveData();
+      }
+      updateStats();
+      renderTable();
+    });
+
+    db.ref('app_users').on('value', (snapshot) => {
+      userProfiles = snapshot.val() || {};
+    });
+  }
+
+  function saveData() {
+    db.ref('blue_numbers_data').set(items);
+  }
+
+  function mudarTela(telaId) {
+    document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden'));
+    document.getElementById(telaId).classList.remove('hidden');
+  }
+
+  function abrirModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+  }
+
+  function fecharModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+  }
+
+  function abrirCadastro() {
+    fecharModal('adm-panel-modal');
+    abrirModal('register-screen');
+  }
+
+  // Login realizado APENAS pelo Nome de Usuário
+  async function fazerLogin() {
+    const username = document.getElementById('login-username').value.trim().toLowerCase();
+    const pass = document.getElementById('login-pass').value;
+
+    if (!username || !pass) {
+      alert("Por favor, informe o usuário e a senha!");
+      return;
+    }
+
+    // Busca o e-mail atrelado ao nome de usuário informado
+    const perfis = Object.values(userProfiles);
+    const perfilEncontrado = perfis.find(u => u.username && u.username.toLowerCase() === username);
+
+    if (!perfilEncontrado || !perfilEncontrado.email) {
+      alert("Nome de usuário não encontrado!");
+      return;
+    }
+
+    try {
+      await auth.signInWithEmailAndPassword(perfilEncontrado.email, pass);
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-pass').value = '';
+    } catch (error) {
+      alert("Erro ao fazer login: " + traduzirErroFirebase(error.code));
+    }
+  }
+
+  function carregarPainel() {
+    document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden'));
+    document.getElementById('app-screen').classList.remove('hidden');
+    
+    document.getElementById('user-info').innerText = currentUserProfile.username;
+    
+    if (currentUserProfile.role === 'adm') {
+      document.getElementById('btn-adm-menu').classList.remove('hidden');
+    } else {
+      document.getElementById('btn-adm-menu').classList.add('hidden');
+    }
+  }
+
+  async function fazerCadastro() {
+    const username = document.getElementById('reg-username').value.trim().toLowerCase();
+    const email = document.getElementById('reg-email').value.trim().toLowerCase();
+    const pass = document.getElementById('reg-pass').value;
+    const role = document.getElementById('reg-role').value;
+
+    if (!username || !email || !pass) {
+      alert("Por favor, preencha todos os campos!");
+      return;
+    }
+
+    // Valida se o username já está sendo usado por outra conta
+    const perfis = Object.values(userProfiles);
+    if (perfis.some(u => u.username && u.username.toLowerCase() === username)) {
+      alert("Este nome de usuário já está em uso por outra conta!");
+      return;
+    }
+
+    try {
+      const userCredential = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
+      const uid = userCredential.user.uid;
+
+      await db.ref('app_users/' + uid).set({
+        uid: uid,
+        username: username,
+        email: email,
+        role: role
+      });
+
+      await secondaryAuth.signOut();
+
+      alert(`Usuário '${username}' criado com sucesso no Firebase!`);
+      
+      document.getElementById('reg-username').value = '';
+      document.getElementById('reg-email').value = '';
+      document.getElementById('reg-pass').value = '';
+      fecharModal('register-screen');
+
+    } catch (error) {
+      alert("Erro ao cadastrar no Firebase: " + traduzirErroFirebase(error.code));
+    }
+  }
+
+  async function recuperarSenha() {
+    const username = document.getElementById('forgot-input').value.trim().toLowerCase();
+    
+    if (!username) {
+      alert("Por favor, informe seu nome de usuário!");
+      return;
+    }
+
+    const perfis = Object.values(userProfiles);
+    const perfilEncontrado = perfis.find(u => u.username && u.username.toLowerCase() === username);
+
+    if (!perfilEncontrado || !perfilEncontrado.email) {
+      alert("Nome de usuário não encontrado!");
+      return;
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(perfilEncontrado.email);
+      alert(`E-mail de redefinição enviado com sucesso para o e-mail cadastrado do usuário ${username}.\n\nVerifique a caixa de entrada e o spam.`);
+      mudarTela('login-screen');
+    } catch (error) {
+      alert("Erro ao solicitar redefinição: " + traduzirErroFirebase(error.code));
+    }
+  }
+
+  function fazerLogout() {
+    auth.signOut();
+  }
+
+  function traduzirErroFirebase(code) {
+    switch (code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'Senha incorreta para este usuário.';
+      case 'auth/email-already-in-use':
+        return 'Este e-mail já está cadastrado no sistema.';
+      case 'auth/weak-password':
+        return 'A senha deve ter pelo menos 6 caracteres.';
+      case 'auth/invalid-email':
+        return 'O e-mail cadastrado para este usuário é inválido.';
+      default:
+        return 'Ocorreu um erro no servidor do Firebase.';
+    }
+  }
+
+  async function importarPdf(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const fileReader = new FileReader();
+      fileReader.onload = async function() {
+        const typedarray = new Uint8Array(this.result);
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(item => item.str).join(' ');
+          fullText += pageText + ' ';
+        }
+
+        const matches = fullText.match(/\b\d{8,12}\b/g);
+
+        if (!matches || matches.length === 0) {
+          alert("Nenhum número de etiqueta válido foi encontrado dentro do arquivo PDF.");
+          event.target.value = '';
+          return;
+        }
+
+        const numEncontrados = [...new Set(matches)];
+        let novosAdicionados = 0;
+
+        numEncontrados.forEach(num => {
+          if (!items.some(i => i.id === num)) {
+            items.push({ id: num, drawn: false, used: false });
+            novosAdicionados++;
+          }
+        });
+
+        saveData();
+        alert(`Processamento concluído!\n• Total lido: ${numEncontrados.length}\n• Adicionados: ${novosAdicionados}`);
+        fecharModal('adm-panel-modal');
+        event.target.value = '';
+      };
+      fileReader.readAsArrayBuffer(file);
+    } catch (err) {
+      alert("Erro ao ler o arquivo PDF.");
+      ev

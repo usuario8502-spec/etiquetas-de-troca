@@ -7,6 +7,14 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Etiquetas de trocas</title>
+
+  <!-- PWA & Service Worker -->
+  <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
   
   <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -26,7 +34,6 @@
     h1 { text-align: center; color: #1a73e8; margin: 10px 0 20px 0; font-size: 1.8rem; }
     
     .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; text-align: center; }
-    
     .alert-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; text-align: center; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
     
     .screen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
@@ -47,11 +54,10 @@
     .btn-adm:active { background-color: #218838; }
     .btn-info { background-color: #17a2b8; }
     .btn-info:active { background-color: #117a8b; }
-    
     .btn-reset { background-color: #dc3545; }
     .btn-reset:active { background-color: #bd2130; }
 
-    .display-number { font-size: 2.5rem; font-weight: 800; color: #1a73e8; letter-spacing: 2px; margin: 15px 0; min-height: 50px; }
+    .display-number { font-size: 2.2rem; font-weight: 800; color: #1a73e8; letter-spacing: 2px; margin: 15px 0; min-height: 50px; word-break: break-all; }
     
     .btn { background-color: #1a73e8; color: white; border: none; width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: background 0.2s, transform 0.1s; }
     .btn:active { background-color: #1557b0; transform: scale(0.98); }
@@ -71,17 +77,11 @@
     .badge { padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
     .badge-drawn { background-color: #e8f0fe; color: #1a73e8; }
     .badge-used { background-color: #e6f4ea; color: #137333; }
-    .badge-adm-clickable { cursor: pointer; border: 1px dashed #137333; }
-    .badge-adm-clickable:hover { background-color: #ceead6; }
 
     .checkbox-container { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; }
     .checkbox-container input { width: 20px; height: 20px; accent-color: #1a73e8; cursor: pointer; }
     .empty-msg { text-align: center; color: #888; padding: 25px; }
-    
-    .btn-action { padding: 6px 10px; border-radius: 6px; border: none; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
-    .btn-edit { background-color: #ffc107; color: #212529; }
-    .btn-delete { background-color: #dc3545; color: white; }
-    
+
     .tutorial-step { text-align: left; background: #f8f9fa; border-left: 4px solid #1a73e8; padding: 12px; margin-bottom: 12px; border-radius: 0 8px 8px 0; }
     .tutorial-step h4 { margin: 0 0 5px 0; color: #1a73e8; font-size: 0.95rem; }
     .tutorial-step p { margin: 0; font-size: 0.85rem; color: #555; }
@@ -91,7 +91,7 @@
 </head>
 <body>
 
-<!-- Tela de Login (Somente Usuário) -->
+<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -113,17 +113,12 @@
     
     <div class="tutorial-step">
       <h4>1. Gerar Nova Etiqueta</h4>
-      <p>Clique no botão azul <strong>"Sortear Próximo Número"</strong> no topo da tela para sortear uma nova etiqueta disponível.</p>
+      <p>Clique no botão azul <strong>"Sortear Próximo Número"</strong> para obter uma nova etiqueta.</p>
     </div>
 
     <div class="tutorial-step">
       <h4>2. Marcar como Utilizada</h4>
-      <p>Após colar ou utilizar a etiqueta fisicamente, marque a caixa <strong>[  ] Sim</strong> na tabela referente ao código sorteado.</p>
-    </div>
-
-    <div class="tutorial-step">
-      <h4>3. Identificar Etiquetas Usadas</h4>
-      <p>Quando uma etiqueta for utilizada, o status mudará para o selo verde <span class="badge badge-used">Sim</span> indicando que ela já foi finalizada.</p>
+      <p>Marque a caixa de seleção na tabela referente ao código utilizado.</p>
     </div>
 
     <button class="btn" onclick="fecharModal('tutorial-modal')">Entendi, Começar!</button>
@@ -133,8 +128,8 @@
 <!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
-    <h1 style="margin-top:0;">Painel de Controle ADM</h1>
-    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Gerenciamento restrito do sistema</p>
+    <h1 style="margin-top:0;">Painel ADM</h1>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Gerenciamento do sistema</p>
     
     <div style="display: flex; flex-direction: column; gap: 10px;">
       <button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button>
@@ -158,7 +153,7 @@
       <option value="usuario">Perfil: Usuário Comum</option>
       <option value="adm">Perfil: Administrador (ADM)</option>
     </select>
-    <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário no Firebase</button>
+    <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button>
     <button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button>
   </div>
 </div>
@@ -167,7 +162,7 @@
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
-    <p style="font-size:0.85rem; color:#666;">Informe seu nome de usuário para receber o link de redefinição de senha no e-mail cadastrado.</p>
+    <p style="font-size:0.85rem; color:#666;">Informe seu nome de usuário para redefinir a senha.</p>
     <input type="text" id="forgot-input" placeholder="Nome de Usuário">
     <button class="btn" onclick="recuperarSenha()">Enviar E-mail de Redefinição</button>
     <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar ao Login</button>
@@ -208,7 +203,11 @@
     <div class="table-container">
       <table>
         <thead>
-          <tr id="table-header"></tr>
+          <tr>
+            <th>Número</th>
+            <th>Status</th>
+            <th>Utilizado</th>
+          </tr>
         </thead>
         <tbody id="table-body"></tbody>
       </table>
@@ -231,7 +230,6 @@
   const db = firebase.database();
   const auth = firebase.auth();
 
-  // Aplicação secundária para criação de contas pelo ADM sem perder a sessão atual
   const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
   const secondaryAuth = secondaryApp.auth();
 
@@ -241,11 +239,17 @@
   let userProfiles = {};
   let currentUserProfile = null;
 
+  // Carrega a lista de usuários no banco imediatamente para permitir login por username
+  db.ref('app_users').on('value', (snapshot) => {
+    userProfiles = snapshot.val() || {};
+  });
+
   auth.onAuthStateChanged((user) => {
     if (user) {
       db.ref('app_users/' + user.uid).once('value', (snapshot) => {
         currentUserProfile = snapshot.val() || { username: user.email.split('@')[0], role: 'usuario', email: user.email };
         carregarPainel();
+        iniciarSincronizacaoNumeros();
       });
     } else {
       currentUserProfile = null;
@@ -254,10 +258,10 @@
     }
   });
 
-  function initDataSync() {
+  function iniciarSincronizacaoNumeros() {
     db.ref('blue_numbers_data').on('value', (snapshot) => {
       const data = snapshot.val();
-      if (data) {
+      if (data && Array.isArray(data)) {
         items = data;
       } else {
         items = [];
@@ -268,10 +272,6 @@
       }
       updateStats();
       renderTable();
-    });
-
-    db.ref('app_users').on('value', (snapshot) => {
-      userProfiles = snapshot.val() || {};
     });
   }
 
@@ -297,7 +297,6 @@
     abrirModal('register-screen');
   }
 
-  // Login realizado APENAS pelo Nome de Usuário
   async function fazerLogin() {
     const username = document.getElementById('login-username').value.trim().toLowerCase();
     const pass = document.getElementById('login-pass').value;
@@ -307,7 +306,6 @@
       return;
     }
 
-    // Busca o e-mail atrelado ao nome de usuário informado
     const perfis = Object.values(userProfiles);
     const perfilEncontrado = perfis.find(u => u.username && u.username.toLowerCase() === username);
 
@@ -349,10 +347,9 @@
       return;
     }
 
-    // Valida se o username já está sendo usado por outra conta
     const perfis = Object.values(userProfiles);
     if (perfis.some(u => u.username && u.username.toLowerCase() === username)) {
-      alert("Este nome de usuário já está em uso por outra conta!");
+      alert("Este nome de usuário já está em uso!");
       return;
     }
 
@@ -368,16 +365,14 @@
       });
 
       await secondaryAuth.signOut();
-
-      alert(`Usuário '${username}' criado com sucesso no Firebase!`);
+      alert(`Usuário '${username}' criado com sucesso!`);
       
       document.getElementById('reg-username').value = '';
       document.getElementById('reg-email').value = '';
       document.getElementById('reg-pass').value = '';
       fecharModal('register-screen');
-
     } catch (error) {
-      alert("Erro ao cadastrar no Firebase: " + traduzirErroFirebase(error.code));
+      alert("Erro ao cadastrar: " + traduzirErroFirebase(error.code));
     }
   }
 
@@ -399,10 +394,10 @@
 
     try {
       await auth.sendPasswordResetEmail(perfilEncontrado.email);
-      alert(`E-mail de redefinição enviado com sucesso para o e-mail cadastrado do usuário ${username}.\n\nVerifique a caixa de entrada e o spam.`);
+      alert(`E-mail enviado com sucesso para a conta de ${username}.`);
       mudarTela('login-screen');
     } catch (error) {
-      alert("Erro ao solicitar redefinição: " + traduzirErroFirebase(error.code));
+      alert("Erro ao redefinir: " + traduzirErroFirebase(error.code));
     }
   }
 
@@ -410,20 +405,80 @@
     auth.signOut();
   }
 
-  function traduzirErroFirebase(code) {
-    switch (code) {
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-      case 'auth/invalid-credential':
-        return 'Senha incorreta para este usuário.';
-      case 'auth/email-already-in-use':
-        return 'Este e-mail já está cadastrado no sistema.';
-      case 'auth/weak-password':
-        return 'A senha deve ter pelo menos 6 caracteres.';
-      case 'auth/invalid-email':
-        return 'O e-mail cadastrado para este usuário é inválido.';
-      default:
-        return 'Ocorreu um erro no servidor do Firebase.';
+  function sortear() {
+    const disponiveis = items.filter(i => !i.drawn);
+    if (disponiveis.length === 0) {
+      alert("Todos os números já foram sorteados!");
+      return;
+    }
+    const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+    escolhido.drawn = true;
+    document.getElementById('display').innerText = escolhido.id;
+    saveData();
+  }
+
+  function toggleUsed(index) {
+    items[index].used = !items[index].used;
+    saveData();
+  }
+
+  function updateStats() {
+    const total = items.length;
+    const drawn = items.filter(i => i.drawn).length;
+    const available = total - drawn;
+    const used = items.filter(i => i.used).length;
+
+    document.getElementById('stat-total').innerText = total;
+    document.getElementById('stat-drawn').innerText = drawn;
+    document.getElementById('stat-available').innerText = available;
+    document.getElementById('stat-used').innerText = used;
+  }
+
+  function renderTable() {
+    const searchVal = document.getElementById('search').value.toLowerCase();
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+
+    const filtrados = items.filter(i => i.id.toString().includes(searchVal));
+
+    if (filtrados.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="empty-msg">Nenhum número encontrado.</td></tr>';
+      return;
+    }
+
+    filtrados.forEach((item) => {
+      const globalIndex = items.findIndex(i => i.id === item.id);
+      const tr = document.createElement('tr');
+      
+      const statusHtml = item.drawn 
+        ? '<span class="badge badge-drawn">Sorteado</span>' 
+        : '<span style="color:#aaa;">Disponível</span>';
+
+      const checkboxHtml = `
+        <label class="checkbox-container">
+          <input type="checkbox" ${item.used ? 'checked' : ''} onchange="toggleUsed(${globalIndex})">
+          ${item.used ? '<span class="badge badge-used">Sim</span>' : 'Não'}
+        </label>
+      `;
+
+      tr.innerHTML = `
+        <td><strong>${item.id}</strong></td>
+        <td>${statusHtml}</td>
+        <td>${checkboxHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function resetarContagens() {
+    if (confirm("Tem certeza que deseja resetar TODOS os sorteios e marcas de uso?")) {
+      items.forEach(i => {
+        i.drawn = false;
+        i.used = false;
+      });
+      document.getElementById('display').innerText = '----------';
+      saveData();
+      fecharModal('adm-panel-modal');
     }
   }
 
@@ -441,34 +496,51 @@
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          const pageText = textContent.items.map(item => item.str).join(' ');
-          fullText += pageText + ' ';
+          fullText += textContent.items.map(item => item.str).join(' ') + ' ';
         }
 
         const matches = fullText.match(/\b\d{8,12}\b/g);
-
-        if (!matches || matches.length === 0) {
-          alert("Nenhum número de etiqueta válido foi encontrado dentro do arquivo PDF.");
+        if (!matches) {
+          alert("Nenhum número foi encontrado no PDF.");
           event.target.value = '';
           return;
         }
 
         const numEncontrados = [...new Set(matches)];
-        let novosAdicionados = 0;
-
+        let novos = 0;
         numEncontrados.forEach(num => {
           if (!items.some(i => i.id === num)) {
             items.push({ id: num, drawn: false, used: false });
-            novosAdicionados++;
+            novos++;
           }
         });
 
         saveData();
-        alert(`Processamento concluído!\n• Total lido: ${numEncontrados.length}\n• Adicionados: ${novosAdicionados}`);
+        alert(`Importação concluída! Adicionados: ${novos}`);
         fecharModal('adm-panel-modal');
         event.target.value = '';
       };
       fileReader.readAsArrayBuffer(file);
     } catch (err) {
       alert("Erro ao ler o arquivo PDF.");
-      ev
+      event.target.value = '';
+    }
+  }
+
+  function traduzirErroFirebase(code) {
+    switch (code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'Senha incorreta para este usuário.';
+      case 'auth/email-already-in-use':
+        return 'Este e-mail já está cadastrado no sistema.';
+      case 'auth/weak-password':
+        return 'A senha deve ter pelo menos 6 caracteres.';
+      default:
+        return 'Erro ao processar no Firebase.';
+    }
+  }
+</script>
+</body>
+</html>

@@ -10,7 +10,6 @@
   <meta name="apple-mobile-web-app-title" content="Etiquetas">
   <title>Etiquetas de trocas</title>
 
-  <!-- Ícones e PWA -->
   <link rel="icon" type="image/png" sizes="192x192" href="./icon.png">
   <link rel="apple-touch-icon" href="./icon.png">
   <link rel="manifest" href="./manifest.json">
@@ -24,13 +23,11 @@
     }
   </script>
   
-  <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
-  <!-- SDKs do Firebase (Versão Compatível) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -40,43 +37,6 @@
     body { background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; user-select: none; }
     .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; color: #1a73e8; margin: 10px 0 20px 0; font-size: 1.8rem; }
-    
-    /* ESTILOS DA TELA DE ABERTURA (SPLASH SCREEN) */
-    .splash-container {
-      position: fixed;
-      top: 0; 
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #ffffff;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-    .splash-container.fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
-    .splash-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: zoomIn 0.5s ease-out;
-    }
-    .splash-logo {
-      width: 220px;
-      height: 220px;
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0px 10px 20px rgba(0, 0, 0, 0.08));
-      margin-left: 18px; /* Ajuste óptico do ícone */
-    }
-
-    @keyframes zoomIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; text-align: center; }
     .alert-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; text-align: center; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
@@ -134,27 +94,6 @@
 </head>
 <body>
 
-<!-- TELA DE ABERTURA (SPLASH SCREEN) -->
-<div id="splash-screen" class="splash-container">
-  <div class="splash-content">
-    <img src="./icon.png" alt="Logo" class="splash-logo" onerror="this.style.display='none'; document.getElementById('svg-icon-fallback').style.display='block';">
-    
-    <div id="svg-icon-fallback" style="display:none;">
-      <svg width="200" height="200" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="50" y="10" width="40" height="30" rx="4" fill="#0b3c5d" stroke="#0b3c5d" stroke-width="2"/>
-        <rect x="54" y="14" width="32" height="22" rx="2" fill="#1a73e8"/>
-        <path d="M 64 40 L 76 40 L 70 46 Z" fill="#0b3c5d"/>
-        <rect x="10" y="60" width="40" height="30" rx="4" fill="#0b3c5d" stroke="#0b3c5d" stroke-width="2"/>
-        <rect x="14" y="64" width="32" height="22" rx="2" fill="#1a73e8"/>
-        <path d="M 24 90 L 36 90 L 30 96 Z" fill="#0b3c5d"/>
-        <path d="M 30 25 L 42 25 M 38 20 L 45 25 L 38 30" stroke="#c5d9f8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M 70 75 L 58 75 M 62 70 L 55 75 L 62 80" stroke="#c5d9f8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-  </div>
-</div>
-
-<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -168,7 +107,6 @@
   </div>
 </div>
 
-<!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Painel ADM</h1>
@@ -185,7 +123,6 @@
   </div>
 </div>
 
-<!-- Modal Cadastro de Usuário -->
 <div id="register-screen" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -201,7 +138,6 @@
   </div>
 </div>
 
-<!-- Tela de Recuperação de Senha -->
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -212,7 +148,6 @@
   </div>
 </div>
 
-<!-- Aplicação Principal -->
 <div id="app-screen" class="container hidden">
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>
@@ -257,16 +192,6 @@
 </div>
 
 <script>
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const splash = document.getElementById('splash-screen');
-      if (splash) {
-        splash.classList.add('fade-out');
-        setTimeout(() => splash.remove(), 600);
-      }
-    }, 1500);
-  });
-
   const firebaseConfig = {
     apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y",
     authDomain: "etiquetas-de-troca.firebaseapp.com",
@@ -494,8 +419,8 @@
 
   function updateStats() {
     const total = items.length;
-    const drawn = items.filter(i => i.drawn).length;
-    const available = total - drawn;
+    const drawn = items.filter(i => i.drawn);
+    const available = total - drawn.length;
     const used = items.filter(i => i.used).length;
 
     document.getElementById('stat-total').innerText = total;
@@ -567,74 +492,4 @@
         i.used = false;
       });
       
-      const displayEl = document.getElementById('display');
-      displayEl.innerText = 'Clique no botão abaixo para gerar sua etiqueta';
-      displayEl.classList.add('placeholder-text');
       
-      saveData();
-      fecharModal('adm-panel-modal');
-    }
-  }
-
-  async function importarPdf(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const fileReader = new FileReader();
-      fileReader.onload = async function() {
-        const typedarray = new Uint8Array(this.result);
-        const pdf = await pdfjsLib.getDocument(typedarray).promise;
-        let fullText = '';
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          fullText += textContent.items.map(item => item.str).join(' ') + ' ';
-        }
-
-        const matches = fullText.match(/\b\d{8,12}\b/g);
-        if (!matches) {
-          alert("Nenhum número foi encontrado no PDF.");
-          event.target.value = '';
-          return;
-        }
-
-        const numEncontrados = [...new Set(matches)];
-        let novos = 0;
-        numEncontrados.forEach(num => {
-          if (!items.some(i => i.id === num)) {
-            items.push({ id: num, drawn: false, used: false });
-            novos++;
-          }
-        });
-
-        saveData();
-        alert(`Importação concluída! Adicionados: ${novos}`);
-        fecharModal('adm-panel-modal');
-        event.target.value = '';
-      };
-      fileReader.readAsArrayBuffer(file);
-    } catch (err) {
-      alert("Erro ao ler o arquivo PDF.");
-      event.target.value = '';
-    }
-  }
-
-  function traduzirErroFirebase(code) {
-    switch (code) {
-      case 'auth/user-not-found':
-      case 'auth/wrong-password':
-      case 'auth/invalid-credential':
-        return 'Senha incorreta para este usuário.';
-      case 'auth/email-already-in-use':
-        return 'Este e-mail já está cadastrado no sistema.';
-      case 'auth/weak-password':
-        return 'A senha deve ter pelo menos 6 caracteres.';
-      default:
-        return 'Erro ao processar no Firebase.';
-    }
-  }
-</script>
-</body>
-</html>

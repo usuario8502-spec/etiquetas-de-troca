@@ -538,6 +538,475 @@
     displayEl.innerText = escolhido.id;
     displayEl.classList.remove('placeholder-text');
     
+    sav        <thead><tr><th>Número</th><th>Ações</th></tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <button class="btn" style="background:#dc3545;" onclick="fazerLogout()">Sair</button>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y",
+    authDomain: "etiquetas-de-troca.firebaseapp.com",
+    databaseURL: "https://etiquetas-de-troca-default-rtdb.firebaseio.com",
+    projectId: "etiquetas-de-troca",
+    storageBucket: "etiquetas-de-troca.firebasestorage.app",
+    messagingSenderId: "383713360586",
+    appId: "1:383713360586:web:9ed1aefd0da9d6013e5233"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  const TEMPO_LIMITE_MS = 8 * 60 * 1000;
+
+  // --- Lógica de Segurança ---
+  function registrarAtividade() {
+    if (auth.currentUser) sessionStorage.setItem('last_activity', Date.now().toString());
+  }
+
+  function verificarInatividade() {
+    const ultimaAtividade = sessionStorage.getItem('last_activity');
+    if (ultimaAtividade && (Date.now() - parseInt(ultimaAtividade, 10) > TEMPO_LIMITE_MS)) {
+      alert("Sessão expirou por inatividade.");
+      fazerLogout();
+      return true;
+    }
+    return false;
+  }
+
+  // Listener de atividades
+  ['click', 'mousemove', 'keypress', 'touchstart'].forEach(e => window.addEventListener(e, registrarAtividade));
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') verificarInatividade();
+  });
+
+  setInterval(verificarInatividade, 10000);
+
+  // --- Funções Principais ---
+  async function fazerLogin() {
+    const username = document.getElementById('login-username').value.trim().toLowerCase();
+    const pass = document.getElementById('login-pass').value;
+
+    if (!username || !pass) return alert("Preencha tudo!");
+
+    try {
+      // Define a persistência como SESSION (Fecha ao sair do navegador/app)
+      await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+      
+      // Busca usuário (Lógica simplificada conforme seu fluxo anterior)
+      const snap = await db.ref('app_users').once('value');
+      const users = snap.val();
+      const userEntry = Object.values(users).find(u => u.username === username);
+      
+      if (!userEntry) return alert("Usuário não encontrado.");
+      
+      await auth.signInWithEmailAndPassword(userEntry.email, pass);
+      registrarAtividade();
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+    } catch (e) {
+      alert("Erro ao logar.");
+    }
+  }
+
+  function fazerLogout() {
+    sessionStorage.removeItem('last_activity');
+    auth.signOut().then(() => location.reload());
+  }
+
+  function sortear() {
+    // (Lógica de sorteio simplificada)
+    const numero = Math.floor(Math.random() * 1000000); 
+    const displayEl = document.getElementById('display');
+    const btnCopy = document.getElementById('btn-copy');
+    
+    displayEl.innerText = numero;
+    displayEl.classList.remove('placeholder-text');
+    btnCopy.classList.remove('hidden');
+  }
+
+  function copiarNumero() {
+    const texto = document.getElementById('display').innerText;
+    const btnCopy = document.getElementById('btn-copy');
+    
+    navigator.clipboard.writeText(texto).then(() => {
+        const originalText = btnCopy.innerText;
+        btnCopy.innerText = '✅ Copiado!';
+        setTimeout(() => btnCopy.innerText = originalText, 2000);
+    });
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+    }
+  });
+</script>
+</body>
+</html>
+<body>
+
+<div id="login-screen" class="screen-overlay full-bg">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Login</h1>
+    <input type="text" id="login-username" placeholder="Nome de Usuário">
+    <input type="password" id="login-pass" placeholder="Senha">
+    <button class="btn" onclick="fazerLogin()">Entrar</button>
+    
+    <div style="margin-top: 15px;">
+      <button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button>
+    </div>
+  </div>
+</div>
+
+<div id="adm-panel-modal" class="screen-overlay hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Painel ADM</h1>
+    <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Gerenciamento do sistema</p>
+    
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button>
+      <button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button>
+      <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)">
+      
+      <button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button>
+      <button class="btn btn-secondary" onclick="fecharModal('adm-panel-modal')">Fechar Painel</button>
+    </div>
+  </div>
+</div>
+
+<div id="register-screen" class="screen-overlay hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Novo Usuário</h1>
+    <input type="text" id="reg-username" placeholder="Nome do Usuário">
+    <input type="email" id="reg-email" placeholder="E-mail do Usuário">
+    <input type="password" id="reg-pass" placeholder="Senha (mínimo 6 caracteres)">
+    <select id="reg-role">
+      <option value="usuario">Perfil: Usuário Comum</option>
+      <option value="adm">Perfil: Administrador (ADM)</option>
+    </select>
+    <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button>
+    <button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button>
+  </div>
+</div>
+
+<div id="forgot-screen" class="screen-overlay full-bg hidden">
+  <div class="auth-card">
+    <h1 style="margin-top:0;">Resetar Senha</h1>
+    <p style="font-size:0.85rem; color:#666;">Informe seu nome de usuário para redefinir a senha.</p>
+    <input type="text" id="forgot-input" placeholder="Nome de Usuário">
+    <button class="btn" onclick="recuperarSenha()">Enviar E-mail de Redefinição</button>
+    <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar ao Login</button>
+  </div>
+</div>
+
+<div id="app-screen" class="container hidden">
+  <div class="user-bar">
+    <span id="user-info">Usuário Logado</span>
+    <div class="user-actions">
+      <button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button>
+      <button class="btn-user-bar" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <h1>Etiquetas de trocas</h1>
+
+  <div id="alert-warning" class="alert-banner hidden"></div>
+
+  <div class="card">
+    <div id="display" class="display-number placeholder-text">Clique no botão abaixo para gerar sua etiqueta</div>
+    <button class="btn" onclick="sortear()">Gerar etiqueta</button>
+  </div>
+
+  <div class="card">
+    <div class="stats">
+      <div>Total <span id="stat-total">0</span></div>
+      <div>Disponíveis <span id="stat-available">0</span></div>
+      <div>Utilizadas <span id="stat-used">0</span></div>
+    </div>
+    
+    <input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta gerada..." oninput="renderTable()">
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Status</th>
+            <th>Utilizada</th>
+            <th id="th-acoes" class="hidden">Ações ADM</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y",
+    authDomain: "etiquetas-de-troca.firebaseapp.com",
+    databaseURL: "https://etiquetas-de-troca-default-rtdb.firebaseio.com",
+    projectId: "etiquetas-de-troca",
+    storageBucket: "etiquetas-de-troca.firebasestorage.app",
+    messagingSenderId: "383713360586",
+    appId: "1:383713360586:web:9ed1aefd0da9d6013e5233"
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
+
+  const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
+  const secondaryAuth = secondaryApp.auth();
+
+  const START_NUM = 1611004001;
+  const END_NUM = 1611004530;
+  let items = [];
+  let userProfiles = {};
+  let currentUserProfile = null;
+
+  // Lógica do Timer de Inatividade de 8 minutos
+  const TEMPO_LIMITE_MS = 8 * 60 * 1000;
+
+  function registrarAtividade() {
+    if (auth.currentUser) {
+      sessionStorage.setItem('last_activity', Date.now().toString());
+    }
+  }
+
+  function verificarInatividade() {
+    const ultimaAtividade = sessionStorage.getItem('last_activity');
+    if (ultimaAtividade) {
+      const decorrido = Date.now() - parseInt(ultimaAtividade, 10);
+      if (decorrido > TEMPO_LIMITE_MS) {
+        alert("Sua sessão expirou por tempo de inatividade (8 minutos).");
+        fazerLogout();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function iniciarTimerInatividade() {
+    registrarAtividade();
+    ['click', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach(evento => {
+      window.addEventListener(evento, registrarAtividade, { passive: true });
+    });
+  }
+
+  // Verifica ao voltar do segundo plano
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && auth.currentUser) {
+      if (!verificarInatividade()) {
+        registrarAtividade();
+      }
+    }
+  });
+
+  // Verificação em tempo real
+  setInterval(() => {
+    if (auth.currentUser) {
+      verificarInatividade();
+    }
+  }, 10000);
+
+  db.ref('app_users').on('value', (snapshot) => {
+    userProfiles = snapshot.val() || {};
+  });
+
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      if (verificarInatividade()) return;
+
+      db.ref('app_users/' + user.uid).once('value', (snapshot) => {
+        currentUserProfile = snapshot.val() || { username: user.email.split('@')[0], role: 'usuario', email: user.email };
+        carregarPainel();
+        iniciarSincronizacaoNumeros();
+        iniciarTimerInatividade();
+      });
+    } else {
+      currentUserProfile = null;
+      document.getElementById('app-screen').classList.add('hidden');
+      mudarTela('login-screen');
+    }
+  });
+
+  function iniciarSincronizacaoNumeros() {
+    db.ref('blue_numbers_data').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data && Array.isArray(data)) {
+        items = data;
+      } else {
+        items = [];
+        for (let i = START_NUM; i <= END_NUM; i++) {
+          items.push({ id: i.toString(), drawn: false, used: false });
+        }
+        saveData();
+      }
+      updateStats();
+      renderTable();
+    });
+  }
+
+  function saveData() {
+    db.ref('blue_numbers_data').set(items);
+  }
+
+  function mudarTela(telaId) {
+    document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden'));
+    document.getElementById(telaId).classList.remove('hidden');
+  }
+
+  function abrirModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+  }
+
+  function fecharModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+  }
+
+  function abrirCadastro() {
+    fecharModal('adm-panel-modal');
+    abrirModal('register-screen');
+  }
+
+  async function fazerLogin() {
+    const username = document.getElementById('login-username').value.trim().toLowerCase();
+    const pass = document.getElementById('login-pass').value;
+
+    if (!username || !pass) {
+      alert("Por favor, informe o usuário e a senha!");
+      return;
+    }
+
+    const perfis = Object.values(userProfiles);
+    const perfilEncontrado = perfis.find(u => u.username && u.username.toLowerCase() === username);
+
+    if (!perfilEncontrado || !perfilEncontrado.email) {
+      alert("Nome de usuário não encontrado!");
+      return;
+    }
+
+    try {
+      // PERSISTENCE.SESSION: Mantém a sessão enquanto a aba/app estiver aberta (mesmo minimizado)
+      // Se fechar a aba/app completamente, a sessão é destruída.
+      await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+      await auth.signInWithEmailAndPassword(perfilEncontrado.email, pass);
+      
+      registrarAtividade();
+
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-pass').value = '';
+    } catch (error) {
+      alert("Erro ao fazer login: " + traduzirErroFirebase(error.code));
+    }
+  }
+
+  function carregarPainel() {
+    document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden'));
+    document.getElementById('app-screen').classList.remove('hidden');
+    
+    document.getElementById('user-info').innerText = currentUserProfile.username;
+    
+    if (currentUserProfile.role === 'adm') {
+      document.getElementById('btn-adm-menu').classList.remove('hidden');
+    } else {
+      document.getElementById('btn-adm-menu').classList.add('hidden');
+    }
+  }
+
+  async function fazerCadastro() {
+    const username = document.getElementById('reg-username').value.trim().toLowerCase();
+    const email = document.getElementById('reg-email').value.trim().toLowerCase();
+    const pass = document.getElementById('reg-pass').value;
+    const role = document.getElementById('reg-role').value;
+
+    if (!username || !email || !pass) {
+      alert("Por favor, preencha todos os campos!");
+      return;
+    }
+
+    const perfis = Object.values(userProfiles);
+    if (perfis.some(u => u.username && u.username.toLowerCase() === username)) {
+      alert("Este nome de usuário já está em uso!");
+      return;
+    }
+
+    try {
+      const userCredential = await secondaryAuth.createUserWithEmailAndPassword(email, pass);
+      const uid = userCredential.user.uid;
+
+      await db.ref('app_users/' + uid).set({
+        uid: uid,
+        username: username,
+        email: email,
+        role: role
+      });
+
+      await secondaryAuth.signOut();
+      alert(`Usuário '${username}' criado com sucesso!`);
+      
+      document.getElementById('reg-username').value = '';
+      document.getElementById('reg-email').value = '';
+      document.getElementById('reg-pass').value = '';
+      fecharModal('register-screen');
+    } catch (error) {
+      alert("Erro ao cadastrar: " + traduzirErroFirebase(error.code));
+    }
+  }
+
+  async function recuperarSenha() {
+    const username = document.getElementById('forgot-input').value.trim().toLowerCase();
+    
+    if (!username) {
+      alert("Por favor, informe seu nome de usuário!");
+      return;
+    }
+
+    const perfis = Object.values(userProfiles);
+    const perfilEncontrado = perfis.find(u => u.username && u.username.toLowerCase() === username);
+
+    if (!perfilEncontrado || !perfilEncontrado.email) {
+      alert("Nome de usuário não encontrado!");
+      return;
+    }
+
+    try {
+      await auth.sendPasswordResetEmail(perfilEncontrado.email);
+      alert(`E-mail enviado com sucesso para a conta de ${username}.`);
+      mudarTela('login-screen');
+    } catch (error) {
+      alert("Erro ao redefinir: " + traduzirErroFirebase(error.code));
+    }
+  }
+
+  function fazerLogout() {
+    sessionStorage.removeItem('last_activity');
+    auth.signOut();
+  }
+
+  function sortear() {
+    const disponiveis = items.filter(i => !i.drawn);
+    if (disponiveis.length === 0) {
+      alert("Todas as etiquetas já foram geradas!");
+      return;
+    }
+    const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+    escolhido.drawn = true;
+    escolhido.used = true;
+    
+    const displayEl = document.getElementById('display');
+    displayEl.innerText = escolhido.id;
+    displayEl.classList.remove('placeholder-text');
+    
     saveData();
   }
 

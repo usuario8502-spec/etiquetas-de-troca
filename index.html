@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Etiquetas de trocas</title>
 
-  <!-- Ícones e PWA -->
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
@@ -18,13 +17,11 @@
     }
   </script>
   
-  <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
-  <!-- SDKs do Firebase (Versão Compatível) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -35,11 +32,15 @@
     .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; color: #1a73e8; margin: 10px 0 20px 0; font-size: 1.8rem; }
     
-    /* ESTILOS DA TELA DE ABERTURA (SPLASH SCREEN - SÓ ÍCONE AMAGNIFICADO) */
+    /* ESTILOS DA TELA DE ABERTURA (SPLASH SCREEN - CENTRALIZADO COM COMPENSAÇÃO ÓPTICA) */
     .splash-container {
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
+      top: 0; 
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
       background-color: #ffffff;
       z-index: 99999;
       display: flex;
@@ -63,6 +64,7 @@
       object-fit: contain;
       display: block;
       filter: drop-shadow(0px 10px 20px rgba(0, 0, 0, 0.08));
+      margin-left: 18px; /* Ajuste óptico para centralizar a caixa de papelão */
     }
 
     @keyframes zoomIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -123,7 +125,6 @@
 </head>
 <body>
 
-<!-- TELA DE ABERTURA (SPLASH SCREEN - SOMENTE ÍCONE) -->
 <div id="splash-screen" class="splash-container">
   <div class="splash-content">
     <img src="icon.png" alt="Logo" class="splash-logo" onerror="this.style.display='none'; document.getElementById('svg-icon-fallback').style.display='block';">
@@ -143,7 +144,6 @@
   </div>
 </div>
 
-<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -157,7 +157,6 @@
   </div>
 </div>
 
-<!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Painel ADM</h1>
@@ -174,7 +173,6 @@
   </div>
 </div>
 
-<!-- Modal Cadastro de Usuário -->
 <div id="register-screen" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -190,7 +188,6 @@
   </div>
 </div>
 
-<!-- Tela de Recuperação de Senha -->
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -201,7 +198,6 @@
   </div>
 </div>
 
-<!-- Aplicação Principal -->
 <div id="app-screen" class="container hidden">
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>

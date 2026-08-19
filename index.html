@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Etiquetas">
   <title>Etiquetas de trocas</title>
 
+  <!-- Ícones e PWA -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
@@ -23,11 +24,13 @@
     }
   </script>
   
+  <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
+  <!-- SDKs do Firebase (Versão Compatível) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -94,6 +97,7 @@
 </head>
 <body>
 
+<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -107,6 +111,7 @@
   </div>
 </div>
 
+<!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Painel ADM</h1>
@@ -123,6 +128,7 @@
   </div>
 </div>
 
+<!-- Modal Cadastro de Usuário -->
 <div id="register-screen" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -138,6 +144,7 @@
   </div>
 </div>
 
+<!-- Tela de Recuperação de Senha -->
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -148,6 +155,7 @@
   </div>
 </div>
 
+<!-- Aplicação Principal -->
 <div id="app-screen" class="container hidden">
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>
@@ -206,10 +214,6 @@
   const db = firebase.database();
   const auth = firebase.auth();
 
-  // Configuração para deslogar automaticamente assim que o app/aba for fechado
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-    .catch(err => console.error("Erro ao configurar persistência de sessão:", err));
-
   const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
   const secondaryAuth = secondaryApp.auth();
 
@@ -219,8 +223,8 @@
   let userProfiles = {};
   let currentUserProfile = null;
 
-  // Lógica do temporizador de 8 minutos de inatividade
-  const TEMPO_LIMITE_MS = 8 * 60 * 1000; // 8 minutos
+  // Lógica de inatividade de 8 minutos
+  const TEMPO_LIMITE_MS = 8 * 60 * 1000;
   let timerInatividade = null;
 
   function iniciarTimerInatividade() {
@@ -241,7 +245,7 @@
     if (timerInatividade) clearTimeout(timerInatividade);
     if (auth.currentUser) {
       timerInatividade = setTimeout(() => {
-        alert("Sua sessão expirou por limite de tempo (8 minutos). Por favor, faça login novamente.");
+        alert("Sua sessão expirou por tempo de inatividade (8 minutos).");
         fazerLogout();
       }, TEMPO_LIMITE_MS);
     }
@@ -252,16 +256,23 @@
   });
 
   auth.onAuthStateChanged((user) => {
-    if (user) {
+    // Verifica se existe o token de sessão ativa no navegador
+    const sessaoAtiva = sessionStorage.getItem('app_active_session');
+
+    if (user && sessaoAtiva) {
       db.ref('app_users/' + user.uid).once('value', (snapshot) => {
         currentUserProfile = snapshot.val() || { username: user.email.split('@')[0], role: 'usuario', email: user.email };
         carregarPainel();
         iniciarSincronizacaoNumeros();
-        iniciarTimerInatividade(); // Inicia a contagem de 8 minutos ao logar
+        iniciarTimerInatividade();
       });
     } else {
+      // Se a sessão temporária expirou ou a aba/app foi fechado, desloga do Firebase imediatamente
+      if (user && !sessaoAtiva) {
+        auth.signOut();
+      }
       currentUserProfile = null;
-      pararTimerInatividade(); // Para o temporizador se não estiver logado
+      pararTimerInatividade();
       document.getElementById('app-screen').classList.add('hidden');
       mudarTela('login-screen');
     }
@@ -324,7 +335,13 @@
     }
 
     try {
+      // Define a persistência de sessão e autentica
+      await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
       await auth.signInWithEmailAndPassword(perfilEncontrado.email, pass);
+      
+      // Cria a marcação de sessão ativa na memória temporária do navegador
+      sessionStorage.setItem('app_active_session', 'true');
+
       document.getElementById('login-username').value = '';
       document.getElementById('login-pass').value = '';
     } catch (error) {
@@ -411,6 +428,7 @@
   }
 
   function fazerLogout() {
+    sessionStorage.removeItem('app_active_session');
     pararTimerInatividade();
     auth.signOut();
   }

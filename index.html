@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Etiquetas de trocas</title>
 
+  <!-- Ícones e PWA -->
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
@@ -15,11 +18,13 @@
     }
   </script>
   
+  <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
+  <!-- SDKs do Firebase (Versão Compatível) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -30,7 +35,7 @@
     .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; color: #1a73e8; margin: 10px 0 20px 0; font-size: 1.8rem; }
     
-    /* ESTILOS DA TELA DE ABERTURA (SPLASH SCREEN) */
+    /* ESTILOS DA TELA DE ABERTURA (SPLASH SCREEN - SÓ ÍCONE AMAGNIFICADO) */
     .splash-container {
       position: fixed;
       top: 0; left: 0;
@@ -38,7 +43,6 @@
       background-color: #ffffff;
       z-index: 99999;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       transition: opacity 0.6s ease, visibility 0.6s ease;
@@ -49,43 +53,18 @@
     }
     .splash-content {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
       animation: zoomIn 0.5s ease-out;
-      padding: 20px;
     }
     .splash-logo {
-      width: 140px;
-      height: 140px;
+      width: 220px;
+      height: 220px;
       object-fit: contain;
-      margin: 0 0 16px 0;
       display: block;
-      filter: drop-shadow(0px 8px 16px rgba(26, 115, 232, 0.15));
-    }
-    .splash-title {
-      font-size: 1.75rem;
-      font-weight: 800;
-      margin: 0 0 15px 0;
-      letter-spacing: -0.5px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a73e8 0%, #0b3c5d 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1.2;
-    }
-    .splash-loader {
-      border: 3px solid #e8f0fe;
-      border-top: 3px solid #1a73e8;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      animation: spin 0.8s linear infinite;
-      margin-top: 5px;
+      filter: drop-shadow(0px 10px 20px rgba(0, 0, 0, 0.08));
     }
 
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes zoomIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; text-align: center; }
@@ -144,12 +123,13 @@
 </head>
 <body>
 
+<!-- TELA DE ABERTURA (SPLASH SCREEN - SOMENTE ÍCONE) -->
 <div id="splash-screen" class="splash-container">
   <div class="splash-content">
     <img src="icon.png" alt="Logo" class="splash-logo" onerror="this.style.display='none'; document.getElementById('svg-icon-fallback').style.display='block';">
     
-    <div id="svg-icon-fallback" style="display:none; margin-bottom:15px;">
-      <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div id="svg-icon-fallback" style="display:none;">
+      <svg width="200" height="200" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="50" y="10" width="40" height="30" rx="4" fill="#0b3c5d" stroke="#0b3c5d" stroke-width="2"/>
         <rect x="54" y="14" width="32" height="22" rx="2" fill="#1a73e8"/>
         <path d="M 64 40 L 76 40 L 70 46 Z" fill="#0b3c5d"/>
@@ -160,12 +140,10 @@
         <path d="M 70 75 L 58 75 M 62 70 L 55 75 L 62 80" stroke="#c5d9f8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-
-    <h2 class="splash-title">Etiquetas de trocas</h2>
-    <div class="splash-loader"></div>
   </div>
 </div>
 
+<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -179,6 +157,7 @@
   </div>
 </div>
 
+<!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Painel ADM</h1>
@@ -195,6 +174,7 @@
   </div>
 </div>
 
+<!-- Modal Cadastro de Usuário -->
 <div id="register-screen" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -210,6 +190,7 @@
   </div>
 </div>
 
+<!-- Tela de Recuperação de Senha -->
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -220,6 +201,7 @@
   </div>
 </div>
 
+<!-- Aplicação Principal -->
 <div id="app-screen" class="container hidden">
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>
@@ -272,7 +254,7 @@
         splash.classList.add('fade-out');
         setTimeout(() => splash.remove(), 600);
       }
-    }, 1600);
+    }, 1500);
   });
 
   const firebaseConfig = {

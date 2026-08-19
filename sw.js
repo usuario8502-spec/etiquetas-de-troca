@@ -1,4 +1,4 @@
-const CACHE_NAME = 'etiquetas-v2';
+const CACHE_NAME = 'etiquetas-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,6 @@ const ASSETS = [
   './manifest.json'
 ];
 
-// Instalação do Service Worker e Cache dos ficheiros
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,7 +15,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Limpeza de Caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -32,7 +30,6 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceção de requisições
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

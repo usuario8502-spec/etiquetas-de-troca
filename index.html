@@ -10,24 +10,27 @@
   <meta name="apple-mobile-web-app-title" content="Etiquetas">
   <title>Etiquetas de trocas</title>
 
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon.png">
-  <link rel="apple-touch-icon" href="./icon.png">
-  <link rel="manifest" href="./manifest.json">
+  <!-- Ícones e PWA -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker registrado:', reg.scope))
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registrado com sucesso:', reg.scope))
           .catch(err => console.error('Erro no Service Worker:', err));
       });
     }
   </script>
   
+  <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
+  <!-- SDKs do Firebase (Versão Compatível) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -94,6 +97,7 @@
 </head>
 <body>
 
+<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -107,6 +111,7 @@
   </div>
 </div>
 
+<!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Painel ADM</h1>
@@ -123,6 +128,7 @@
   </div>
 </div>
 
+<!-- Modal Cadastro de Usuário -->
 <div id="register-screen" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -138,6 +144,7 @@
   </div>
 </div>
 
+<!-- Tela de Recuperação de Senha -->
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -148,6 +155,7 @@
   </div>
 </div>
 
+<!-- Aplicação Principal -->
 <div id="app-screen" class="container hidden">
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>
@@ -492,4 +500,74 @@
         i.used = false;
       });
       
+      const displayEl = document.getElementById('display');
+      displayEl.innerText = 'Clique no botão abaixo para gerar sua etiqueta';
+      displayEl.classList.add('placeholder-text');
       
+      saveData();
+      fecharModal('adm-panel-modal');
+    }
+  }
+
+  async function importarPdf(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const fileReader = new FileReader();
+      fileReader.onload = async function() {
+        const typedarray = new Uint8Array(this.result);
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          fullText += textContent.items.map(item => item.str).join(' ') + ' ';
+        }
+
+        const matches = fullText.match(/\b\d{8,12}\b/g);
+        if (!matches) {
+          alert("Nenhum número foi encontrado no PDF.");
+          event.target.value = '';
+          return;
+        }
+
+        const numEncontrados = [...new Set(matches)];
+        let novos = 0;
+        numEncontrados.forEach(num => {
+          if (!items.some(i => i.id === num)) {
+            items.push({ id: num, drawn: false, used: false });
+            novos++;
+          }
+        });
+
+        saveData();
+        alert(`Importação concluída! Adicionados: ${novos}`);
+        fecharModal('adm-panel-modal');
+        event.target.value = '';
+      };
+      fileReader.readAsArrayBuffer(file);
+    } catch (err) {
+      alert("Erro ao ler o arquivo PDF.");
+      event.target.value = '';
+    }
+  }
+
+  function traduzirErroFirebase(code) {
+    switch (code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'Senha incorreta para este usuário.';
+      case 'auth/email-already-in-use':
+        return 'Este e-mail já está cadastrado no sistema.';
+      case 'auth/weak-password':
+        return 'A senha deve ter pelo menos 6 caracteres.';
+      default:
+        return 'Erro ao processar no Firebase.';
+    }
+  }
+</script>
+</body>
+</html>

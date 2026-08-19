@@ -10,7 +10,6 @@
   <meta name="apple-mobile-web-app-title" content="Etiquetas">
   <title>Etiquetas de trocas</title>
 
-  <!-- Ícones e PWA -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
@@ -24,13 +23,11 @@
     }
   </script>
   
-  <!-- Biblioteca PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
-  <!-- SDKs do Firebase (Versão Compatível) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -97,7 +94,6 @@
 </head>
 <body>
 
-<!-- Tela de Login -->
 <div id="login-screen" class="screen-overlay full-bg">
   <div class="auth-card">
     <h1 style="margin-top:0;">Login</h1>
@@ -111,7 +107,6 @@
   </div>
 </div>
 
-<!-- Modal Painel do ADM -->
 <div id="adm-panel-modal" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Painel ADM</h1>
@@ -128,7 +123,6 @@
   </div>
 </div>
 
-<!-- Modal Cadastro de Usuário -->
 <div id="register-screen" class="screen-overlay hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -144,7 +138,6 @@
   </div>
 </div>
 
-<!-- Tela de Recuperação de Senha -->
 <div id="forgot-screen" class="screen-overlay full-bg hidden">
   <div class="auth-card">
     <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -155,7 +148,6 @@
   </div>
 </div>
 
-<!-- Aplicação Principal -->
 <div id="app-screen" class="container hidden">
   <div class="user-bar">
     <span id="user-info">Usuário Logado</span>
@@ -214,6 +206,10 @@
   const db = firebase.database();
   const auth = firebase.auth();
 
+  // Configuração para deslogar automaticamente assim que o app/aba for fechado
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .catch(err => console.error("Erro ao configurar persistência de sessão:", err));
+
   const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
   const secondaryAuth = secondaryApp.auth();
 
@@ -222,6 +218,34 @@
   let items = [];
   let userProfiles = {};
   let currentUserProfile = null;
+
+  // Lógica do temporizador de 8 minutos de inatividade
+  const TEMPO_LIMITE_MS = 8 * 60 * 1000; // 8 minutos
+  let timerInatividade = null;
+
+  function iniciarTimerInatividade() {
+    resetarTimerInatividade();
+    ['click', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach(evento => {
+      window.addEventListener(evento, resetarTimerInatividade, { passive: true });
+    });
+  }
+
+  function pararTimerInatividade() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    ['click', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach(evento => {
+      window.removeEventListener(evento, resetarTimerInatividade);
+    });
+  }
+
+  function resetarTimerInatividade() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    if (auth.currentUser) {
+      timerInatividade = setTimeout(() => {
+        alert("Sua sessão expirou por limite de tempo (8 minutos). Por favor, faça login novamente.");
+        fazerLogout();
+      }, TEMPO_LIMITE_MS);
+    }
+  }
 
   db.ref('app_users').on('value', (snapshot) => {
     userProfiles = snapshot.val() || {};
@@ -233,9 +257,11 @@
         currentUserProfile = snapshot.val() || { username: user.email.split('@')[0], role: 'usuario', email: user.email };
         carregarPainel();
         iniciarSincronizacaoNumeros();
+        iniciarTimerInatividade(); // Inicia a contagem de 8 minutos ao logar
       });
     } else {
       currentUserProfile = null;
+      pararTimerInatividade(); // Para o temporizador se não estiver logado
       document.getElementById('app-screen').classList.add('hidden');
       mudarTela('login-screen');
     }
@@ -385,6 +411,7 @@
   }
 
   function fazerLogout() {
+    pararTimerInatividade();
     auth.signOut();
   }
 

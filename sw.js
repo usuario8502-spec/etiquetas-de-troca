@@ -1,4 +1,4 @@
-const CACHE_NAME = 'etiquetas-v4';
+const CACHE_NAME = 'etiquetas-v5';
 const ASSETS = [
   './',
   './index.html',

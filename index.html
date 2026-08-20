@@ -6,16 +6,17 @@
   <meta name="theme-color" content="#1a73e8">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <link rel="manifest" href="manifest.json">
+
   <title>Etiquetas de trocas</title>
 
-  <!-- Bibliotecas Externas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-  <!-- Estilos (CSS) -->
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; user-select: none; }
@@ -92,7 +93,6 @@
 </head>
 <body>
 
-  <!-- Tela de Login -->
   <div id="login-screen" class="screen-overlay full-bg">
     <div class="auth-card">
       <h1 style="margin-top:0;">Login</h1>
@@ -106,7 +106,6 @@
     </div>
   </div>
 
-  <!-- Modal Painel ADM -->
   <div id="adm-panel-modal" class="screen-overlay hidden">
     <div class="auth-card">
       <h1 style="margin-top:0;">Painel ADM</h1>
@@ -123,7 +122,6 @@
     </div>
   </div>
 
-  <!-- Tela de Cadastro -->
   <div id="register-screen" class="screen-overlay hidden">
     <div class="auth-card">
       <h1 style="margin-top:0;">Novo Usuário</h1>
@@ -139,7 +137,6 @@
     </div>
   </div>
 
-  <!-- Tela Esqueci a Senha -->
   <div id="forgot-screen" class="screen-overlay full-bg hidden">
     <div class="auth-card">
       <h1 style="margin-top:0;">Resetar Senha</h1>
@@ -150,7 +147,6 @@
     </div>
   </div>
 
-  <!-- App Principal -->
   <div id="app-screen" class="container hidden">
     <div class="user-bar">
       <span id="user-info">Usuário Logado</span>
@@ -166,7 +162,6 @@
 
     <div class="card">
       <div class="display-wrapper">
-        <!-- O display com função de cópia via clique -->
         <div id="display" class="display-number placeholder-text" onclick="copiarDisplay()" title="Clique para copiar">
           Clique no botão abaixo para gerar sua etiqueta
         </div>
@@ -199,7 +194,6 @@
     </div>
   </div>
 
-  <!-- Scripts (JS) -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y",
@@ -448,7 +442,7 @@
       const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
       escolhido.drawn = true;
       escolhido.used = true;
-      escolhido.timestamp = Date.now(); // Marca o momento exato do sorteio para ir para o topo
+      escolhido.timestamp = Date.now();
       
       const displayEl = document.getElementById('display');
       displayEl.innerText = escolhido.id;
@@ -550,8 +544,6 @@
       tbody.innerHTML = '';
 
       const gerados = items.filter(i => i.drawn);
-      
-      // ORDENAÇÃO: Do mais recente para o mais antigo (o último gerado fica no topo)
       gerados.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       let filtrados = gerados;

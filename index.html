@@ -295,7 +295,7 @@
         } else {
           items = [];
           for (let i = START_NUM; i <= END_NUM; i++) {
-            items.push({ id: i.toString(), drawn: false, used: false });
+            items.push({ id: i.toString(), drawn: false, used: false, timestamp: 0 });
           }
           saveData();
         }
@@ -448,6 +448,7 @@
       const escolhido = disponiveis[Math.floor(Math.random() * disponiveis.length)];
       escolhido.drawn = true;
       escolhido.used = true;
+      escolhido.timestamp = Date.now(); // Marca o momento exato do sorteio para ir para o topo
       
       const displayEl = document.getElementById('display');
       displayEl.innerText = escolhido.id;
@@ -456,30 +457,24 @@
       saveData();
     }
 
-    // --- NOVA FUNÇÃO ROBUSTA: Copiar ao clicar no display ---
     function copiarDisplay() {
       const displayEl = document.getElementById('display');
       const texto = displayEl.innerText.trim();
 
-      // Ignora se for o texto inicial ou se já estiver no estado de "Copiado"
       if (displayEl.classList.contains('placeholder-text') || !texto || texto === '✅ Copiado!') return;
 
-      // 1. Tenta o método moderno (Navigator Clipboard)
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(texto).then(() => {
           feedbackCopia(displayEl);
         }).catch(err => {
           console.error("Falha ao usar clipboard moderno:", err);
-          // Se falhar, tenta o fallback manual
           executarCopiaManual(texto, displayEl);
         });
       } else {
-        // 2. Fallback para navegadores antigos ou restritos
         executarCopiaManual(texto, displayEl);
       }
     }
 
-    // Função auxiliar para dar o feedback visual
     function feedbackCopia(el) {
       const originalText = el.innerText;
       el.innerText = '✅ Copiado!';
@@ -488,11 +483,9 @@
       }, 1500);
     }
 
-    // Função de "força bruta" para copiar (cria um campo invisível e copia)
     function executarCopiaManual(texto, el) {
       const textArea = document.createElement("textarea");
       textArea.value = texto;
-      // Garante que o elemento não seja visível, mas esteja no DOM
       textArea.style.position = "fixed";
       textArea.style.left = "-9999px";
       document.body.appendChild(textArea);
@@ -517,6 +510,7 @@
       if (confirm(`Deseja REUTILIZAR a etiqueta ${item.id}?\nEla voltará para a fila de disponíveis para ser gerada novamente.`)) {
         item.drawn = false;
         item.used = false;
+        item.timestamp = 0;
         saveData();
       }
     }
@@ -556,6 +550,10 @@
       tbody.innerHTML = '';
 
       const gerados = items.filter(i => i.drawn);
+      
+      // ORDENAÇÃO: Do mais recente para o mais antigo (o último gerado fica no topo)
+      gerados.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
       let filtrados = gerados;
 
       if (searchVal !== '') {
@@ -604,6 +602,7 @@
         items.forEach(i => {
           i.drawn = false;
           i.used = false;
+          i.timestamp = 0;
         });
         
         const displayEl = document.getElementById('display');
@@ -643,7 +642,7 @@
           let novos = 0;
           numEncontrados.forEach(num => {
             if (!items.some(i => i.id === num)) {
-              items.push({ id: num, drawn: false, used: false });
+              items.push({ id: num, drawn: false, used: false, timestamp: 0 });
               novos++;
             }
           });

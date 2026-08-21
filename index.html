@@ -62,7 +62,7 @@
   <div id="login-screen" class="screen-overlay full-bg">
     <div class="auth-card">
       <h1>Login</h1>
-      <input type="text" id="login-username" placeholder="Nome de Usuário ou E-mail">
+      <input type="text" id="login-username" placeholder="Nome de Usuário">
       <input type="password" id="login-pass" placeholder="Senha">
       <button class="btn" onclick="fazerLogin()">Entrar</button>
       <div style="margin-top: 15px;"><button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button></div>
@@ -73,7 +73,7 @@
     <div class="auth-card">
       <h1>Painel ADM</h1>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn btn-adm" onclick="abrirModal('register-screen')">+ Cadastrar Novo Usuário</button>
+        <button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button>
         <button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button>
         <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)">
         <button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button>
@@ -97,7 +97,7 @@
   <div id="forgot-screen" class="screen-overlay full-bg hidden">
     <div class="auth-card">
       <h1>Resetar Senha</h1>
-      <input type="text" id="forgot-input" placeholder="Nome de Usuário ou E-mail">
+      <input type="text" id="forgot-input" placeholder="Nome de Usuário">
       <button class="btn" onclick="recuperarSenha()">Enviar E-mail</button>
       <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar</button>
     </div>
@@ -224,32 +224,10 @@
     async function fazerLogin() {
       const u = document.getElementById('login-username').value.trim().toLowerCase();
       const p = document.getElementById('login-pass').value;
-      
-      if (!u || !p) { alert("Preencha usuário e senha!"); return; }
-
-      // 1. Tenta logar com e-mail diretamente (se tiver @)
-      if (u.includes('@')) {
-        try { 
-          await auth.signInWithEmailAndPassword(u, p); 
-        } catch(e) { 
-          alert("Usuário não encontrado ou senha incorreta!"); 
-        }
-        return;
-      }
-
-      // 2. Tenta logar pelo Nome de Usuário
-      try {
-        // Garantindo que a lista esteja carregada para evitar o erro falso de "não encontrado"
-        const snap = await db.ref('app_users').once('value');
-        const users = snap.val() || {};
-        const perfil = Object.values(users).find(x => x.username && x.username.toLowerCase() === u);
-        
-        if (!perfil) { alert("Usuário não encontrado!"); return; }
-        
-        await auth.signInWithEmailAndPassword(perfil.email, p);
-      } catch(e) {
-        alert("Erro ao logar: " + e.message);
-      }
+      const perfis = Object.values(userProfiles);
+      const perfil = perfis.find(x => x.username && x.username.toLowerCase() === u);
+      if (!perfil) { alert("Usuário não encontrado!"); return; }
+      try { await auth.signInWithEmailAndPassword(perfil.email, p); } catch(e) { alert("Erro ao logar: " + e.message); }
     }
 
     async function fazerCadastro() {
@@ -340,33 +318,11 @@
       };
       reader.readAsArrayBuffer(file);
     }
-    
     function fazerLogout() { auth.signOut(); }
-    
-    async function recuperarSenha() { 
+    function recuperarSenha() { 
       const u = document.getElementById('forgot-input').value.trim().toLowerCase();
-      if (!u) { alert("Preencha o campo!"); return; }
-
-      // 1. Envia reset direto se for um e-mail
-      if (u.includes('@')) {
-        auth.sendPasswordResetEmail(u)
-          .then(() => alert("E-mail enviado!"))
-          .catch(e => alert("Erro: " + e.message));
-        return;
-      }
-
-      // 2. Se for usuário, busca o e-mail atrelado no banco
-      const snap = await db.ref('app_users').once('value');
-      const users = snap.val() || {};
-      const p = Object.values(users).find(x => x.username && x.username.toLowerCase() === u);
-      
-      if(p) {
-        auth.sendPasswordResetEmail(p.email)
-          .then(() => alert("E-mail enviado!"))
-          .catch(e => alert("Erro: " + e.message));
-      } else {
-        alert("Usuário não encontrado!");
-      }
+      const p = Object.values(userProfiles).find(x => x.username === u);
+      if(p) auth.sendPasswordResetEmail(p.email).then(() => alert("E-mail enviado!")); else alert("Usuário não achado");
     }
   </script>
 </body>

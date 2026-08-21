@@ -62,7 +62,7 @@
   <div id="login-screen" class="screen-overlay full-bg">
     <div class="auth-card">
       <h1>Login</h1>
-      <input type="text" id="login-username" placeholder="Nome de Usuário ou E-mail">
+      <input type="text" id="login-username" placeholder="Login">
       <input type="password" id="login-pass" placeholder="Senha">
       <button class="btn" onclick="fazerLogin()">Entrar</button>
       <div style="margin-top: 15px;"><button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button></div>
@@ -97,7 +97,7 @@
   <div id="forgot-screen" class="screen-overlay full-bg hidden">
     <div class="auth-card">
       <h1>Resetar Senha</h1>
-      <input type="text" id="forgot-input" placeholder="Nome de Usuário ou E-mail">
+      <input type="text" id="forgot-input" placeholder="Login">
       <button class="btn" onclick="recuperarSenha()">Enviar E-mail</button>
       <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar</button>
     </div>

@@ -58,33 +58,124 @@
 </head>
 <body>
 
-  <div id="login-screen" class="screen-overlay full-bg"><div class="auth-card"><h1>Login</h1><input type="text" id="login-username" placeholder="Nome de Usuário"><input type="password" id="login-pass" placeholder="Senha"><button class="btn" onclick="fazerLogin()">Entrar</button><div style="margin-top: 15px;"><button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button></div></div></div>
-  <div id="adm-panel-modal" class="screen-overlay hidden"><div class="auth-card"><h1>Painel ADM</h1><div style="display: flex; flex-direction: column; gap: 10px;"><button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button><button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button><input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)"><button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button><button class="btn btn-secondary" onclick="fecharModal('adm-panel-modal')">Fechar Painel</button></div></div></div>
-  <div id="register-screen" class="screen-overlay hidden"><div class="auth-card"><h1>Novo Usuário</h1><input type="text" id="reg-username" placeholder="Nome do Usuário"><input type="email" id="reg-email" placeholder="E-mail do Usuário"><input type="password" id="reg-pass" placeholder="Senha"><select id="reg-role"><option value="usuario">Perfil: Usuário Comum</option><option value="adm">Perfil: Administrador (ADM)</option></select><button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button><button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button></div></div>
-  <div id="forgot-screen" class="screen-overlay full-bg hidden"><div class="auth-card"><h1>Resetar Senha</h1><input type="text" id="forgot-input" placeholder="Nome de Usuário"><button class="btn" onclick="recuperarSenha()">Enviar E-mail</button><button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar</button></div></div>
-
-  <div id="app-screen" class="container hidden">
-    <div class="user-bar"><span id="user-info">Usuário Logado</span><div class="user-actions"><button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button><button class="btn-user-bar" onclick="fazerLogout()">Sair</button></div></div>
-    <h1>Etiquetas de trocas</h1>
-    <div class="card"><div class="display-wrapper"><div id="display" class="display-number placeholder-text" onclick="copiarDisplay()">Clique no botão abaixo para gerar sua etiqueta</div></div><button class="btn" onclick="sortear()">Gerar etiqueta</button></div>
-    <div class="card"><div class="stats"><div>Total <span id="stat-total">0</span></div><div>Disponíveis <span id="stat-available">0</span></div><div>Utilizadas <span id="stat-used">0</span></div></div><input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta..." oninput="renderTable()"><div class="table-container"><table><thead><tr><th>Número</th><th>Status</th><th>Utilizada</th><th id="th-acoes" class="hidden">Ações</th></tr></thead><tbody id="table-body"></tbody></table></div></div>
+  <!-- Telas de Autenticação -->
+  <div id="login-screen" class="screen-overlay full-bg">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <input type="text" id="login-username" placeholder="Nome de Usuário ou E-mail">
+      <input type="password" id="login-pass" placeholder="Senha">
+      <button class="btn" onclick="fazerLogin()">Entrar</button>
+      <div style="margin-top: 15px;">
+        <button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button>
+      </div>
+    </div>
   </div>
 
+  <div id="adm-panel-modal" class="screen-overlay hidden">
+    <div class="auth-card">
+      <h1>Painel ADM</h1>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-adm" onclick="abrirModal('register-screen')">+ Cadastrar Novo Usuário</button>
+        <button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button>
+        <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)">
+        <button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button>
+        <button class="btn btn-secondary" onclick="fecharModal('adm-panel-modal')">Fechar Painel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="register-screen" class="screen-overlay hidden">
+    <div class="auth-card">
+      <h1>Novo Usuário</h1>
+      <input type="text" id="reg-username" placeholder="Nome do Usuário">
+      <input type="email" id="reg-email" placeholder="E-mail do Usuário">
+      <input type="password" id="reg-pass" placeholder="Senha">
+      <select id="reg-role">
+        <option value="usuario">Perfil: Usuário Comum</option>
+        <option value="adm">Perfil: Administrador (ADM)</option>
+      </select>
+      <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button>
+      <button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button>
+    </div>
+  </div>
+
+  <div id="forgot-screen" class="screen-overlay full-bg hidden">
+    <div class="auth-card">
+      <h1>Resetar Senha</h1>
+      <input type="text" id="forgot-input" placeholder="Nome de Usuário ou E-mail">
+      <button class="btn" onclick="recuperarSenha()">Enviar E-mail</button>
+      <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar</button>
+    </div>
+  </div>
+
+  <!-- Tela Principal do App -->
+  <div id="app-screen" class="container hidden">
+    <div class="user-bar">
+      <span id="user-info">Usuário Logado</span>
+      <div class="user-actions">
+        <button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button>
+        <button class="btn-user-bar" onclick="fazerLogout()">Sair</button>
+      </div>
+    </div>
+    
+    <h1>Etiquetas de trocas</h1>
+    
+    <div class="card">
+      <div class="display-wrapper">
+        <div id="display" class="display-number placeholder-text" onclick="copiarDisplay()">
+          Clique no botão abaixo para gerar sua etiqueta
+        </div>
+      </div>
+      <button class="btn" onclick="sortear()">Gerar etiqueta</button>
+    </div>
+    
+    <div class="card">
+      <div class="stats">
+        <div>Total <span id="stat-total">0</span></div>
+        <div>Disponíveis <span id="stat-available">0</span></div>
+        <div>Utilizadas <span id="stat-used">0</span></div>
+      </div>
+      <input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta..." oninput="renderTable()">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Status</th>
+              <th>Utilizada</th>
+              <th id="th-acoes" class="hidden">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Estruturado e Corrigido -->
   <script>
-    const firebaseConfig = { apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y", authDomain: "etiquetas-de-troca.firebaseapp.com", databaseURL: "https://etiquetas-de-troca-default-rtdb.firebaseio.com", projectId: "etiquetas-de-troca", storageBucket: "etiquetas-de-troca.firebasestorage.app", messagingSenderId: "383713360586", appId: "1:383713360586:web:9ed1aefd0da9d6013e5233" };
+    const firebaseConfig = { 
+      apiKey: "AIzaSyBDrRj7ZBjVEo-c6m0CKDM61OYKWT7ii0Y", 
+      authDomain: "etiquetas-de-troca.firebaseapp.com", 
+      databaseURL: "https://etiquetas-de-troca-default-rtdb.firebaseio.com", 
+      projectId: "etiquetas-de-troca", 
+      storageBucket: "etiquetas-de-troca.firebasestorage.app", 
+      messagingSenderId: "383713360586", 
+      appId: "1:383713360586:web:9ed1aefd0da9d6013e5233" 
+    };
+    
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
     const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = secondaryApp.auth();
 
-    // Sincronização essencial para o login funcionar
-    let userProfiles = {};
-    db.ref('app_users').on('value', (snap) => userProfiles = snap.val() || {});
+    const START_NUM = 1611004001; 
+    const END_NUM = 1611004530;
+    let items = [];
+    let currentUserProfile = null;
 
-    const START_NUM = 1611004001; const END_NUM = 1611004530;
-    let items = [], currentUserProfile = null;
-
+    // Monitora a tecla ENTER
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         if (!document.getElementById('login-screen').classList.contains('hidden')) fazerLogin();
@@ -96,35 +187,155 @@
       }
     });
 
+    // Controle de Sessão
     auth.onAuthStateChanged((user) => {
       if (user) {
         db.ref('app_users/' + user.uid).once('value', (snap) => {
           currentUserProfile = snap.val() || { username: user.email.split('@')[0], role: 'usuario' };
+          
           document.getElementById('app-screen').classList.remove('hidden');
           document.getElementById('user-info').innerText = currentUserProfile.username;
           document.getElementById('btn-adm-menu').classList.toggle('hidden', currentUserProfile.role !== 'adm');
+          
           iniciarSincronizacaoNumeros();
+          mudarTela('none'); // Esconde overlay
         });
-      } else { document.getElementById('app-screen').classList.add('hidden'); mudarTela('login-screen'); }
+      } else { 
+        document.getElementById('app-screen').classList.add('hidden'); 
+        mudarTela('login-screen'); 
+      }
     });
 
+    // Funções de Interface
+    function mudarTela(id) { 
+      document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden')); 
+      if(id !== 'none') document.getElementById(id).classList.remove('hidden'); 
+    }
+    function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function fecharModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // Login (Corrigido o problema da condição de corrida)
+    async function fazerLogin() { 
+      const input = document.getElementById('login-username').value.trim().toLowerCase(); 
+      const pass = document.getElementById('login-pass').value; 
+      
+      if (!input || !pass) {
+        alert("Preencha todos os campos!");
+        return;
+      }
+
+      let emailParaLogin = input;
+
+      // Se não digitou @, vamos buscar diretamente no banco agora
+      if (!input.includes('@')) {
+        try {
+          const snap = await db.ref('app_users').once('value');
+          if (snap.exists()) {
+            const users = snap.val();
+            const perfilEncontrado = Object.values(users).find(x => x.username === input);
+            
+            if (perfilEncontrado && perfilEncontrado.email) {
+              emailParaLogin = perfilEncontrado.email;
+            } else {
+              alert("Usuário não encontrado!"); 
+              return;
+            }
+          } else {
+            alert("Usuário não encontrado!");
+            return;
+          }
+        } catch (error) {
+          console.error("Erro ao ler banco", error);
+        }
+      }
+      
+      try { 
+        await auth.signInWithEmailAndPassword(emailParaLogin, pass); 
+      } catch(e) { 
+        if (e.code === 'auth/wrong-password') alert("Senha incorreta!");
+        else if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-email') alert("Usuário não encontrado!");
+        else alert("Erro: " + e.message); 
+      } 
+    }
+
+    // Cadastro
+    async function fazerCadastro() { 
+      try { 
+        const email = document.getElementById('reg-email').value.trim().toLowerCase(); 
+        const username = document.getElementById('reg-username').value.trim().toLowerCase();
+        const role = document.getElementById('reg-role').value;
+        const pass = document.getElementById('reg-pass').value;
+
+        const cred = await secondaryAuth.createUserWithEmailAndPassword(email, pass); 
+        await db.ref('app_users/' + cred.user.uid).set({ 
+          uid: cred.user.uid, 
+          username: username, 
+          email: email, 
+          role: role 
+        }); 
+        
+        await secondaryAuth.signOut(); 
+        alert("Usuário criado com sucesso!"); 
+        fecharModal('register-screen'); 
+      } catch(err) { 
+        alert("Erro no cadastro: " + err.message); 
+      } 
+    }
+
+    // Recuperar Senha (Corrigido para o mesmo padrão seguro)
+    async function recuperarSenha() { 
+      const input = document.getElementById('forgot-input').value.trim().toLowerCase(); 
+      if (!input) { alert("Preencha o campo!"); return; }
+
+      let emailParaRecuperacao = input;
+
+      if (!input.includes('@')) {
+        try {
+          const snap = await db.ref('app_users').once('value');
+          if (snap.exists()) {
+            const users = snap.val();
+            const perfilEncontrado = Object.values(users).find(x => x.username === input);
+            if (perfilEncontrado && perfilEncontrado.email) {
+              emailParaRecuperacao = perfilEncontrado.email;
+            } else {
+              alert("Usuário não encontrado!"); return;
+            }
+          }
+        } catch(e) { console.error(e); }
+      }
+
+      auth.sendPasswordResetEmail(emailParaRecuperacao)
+        .then(() => alert("E-mail de recuperação enviado para " + emailParaRecuperacao + "!"))
+        .catch(e => alert("Erro: " + e.message)); 
+    }
+
+    function fazerLogout() { auth.signOut(); }
+
+    // Sincronização dos números
     function iniciarSincronizacaoNumeros() {
       db.ref('blue_numbers_data').on('value', (snap) => {
         const data = snap.val();
-        if (data && Array.isArray(data)) items = data;
-        else { items = []; for (let i = START_NUM; i <= END_NUM; i++) items.push({ id: i.toString(), drawn: false, used: false, timestamp: 0 }); saveData(); }
-        updateStats(); renderTable();
+        if (data && Array.isArray(data)) {
+          items = data;
+        } else { 
+          items = []; 
+          for (let i = START_NUM; i <= END_NUM; i++) {
+            items.push({ id: i.toString(), drawn: false, used: false, timestamp: 0 }); 
+          }
+          saveData(); 
+        }
+        updateStats(); 
+        renderTable();
       });
     }
 
     function saveData() { db.ref('blue_numbers_data').set(items); }
-    function mudarTela(id) { document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-    function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function fecharModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+    // Sortear
     function sortear() {
       const disp = items.filter(i => !i.drawn);
       if (disp.length === 0) { alert("Sem etiquetas disponíveis!"); return; }
+      
       if (!confirm("Deseja realmente gerar uma nova etiqueta?")) return;
 
       const dispEl = document.getElementById('display');
@@ -133,7 +344,10 @@
 
       setTimeout(() => {
         const escolhido = disp[Math.floor(Math.random() * disp.length)];
-        escolhido.drawn = true; escolhido.used = true; escolhido.timestamp = Date.now();
+        escolhido.drawn = true; 
+        escolhido.used = true; 
+        escolhido.timestamp = Date.now();
+        
         dispEl.innerText = escolhido.id;
         dispEl.classList.remove('placeholder-text');
         dispEl.classList.add('anim-pop');
@@ -150,17 +364,39 @@
       });
     }
 
-    function reutilizarEtiqueta(idx) { if (confirm("Reutilizar?")) { items[idx].drawn = false; items[idx].used = false; items[idx].timestamp = 0; saveData(); } }
-    function editarEtiqueta(idx) { const novo = prompt("Novo número:", items[idx].id); if (novo) { items[idx].id = novo; saveData(); } }
+    function reutilizarEtiqueta(idx) { 
+      if (confirm("Reutilizar esta etiqueta?")) { 
+        items[idx].drawn = false; 
+        items[idx].used = false; 
+        items[idx].timestamp = 0; 
+        saveData(); 
+      } 
+    }
+
+    function editarEtiqueta(idx) { 
+      const novo = prompt("Novo número:", items[idx].id); 
+      if (novo) { items[idx].id = novo; saveData(); } 
+    }
 
     function renderTable() {
       const val = document.getElementById('search').value.toLowerCase();
       const tbody = document.getElementById('table-body');
       tbody.innerHTML = '';
+      
       items.filter(i => i.drawn && i.id.includes(val)).sort((a,b) => b.timestamp - a.timestamp).forEach((item) => {
         const idx = items.findIndex(i => i.id === item.id);
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><strong>${item.id}</strong></td><td><span class="badge badge-drawn">Gerada</span></td><td><span class="badge badge-used">Sim</span></td>${currentUserProfile.role === 'adm' ? `<td><button class="btn-action" onclick="reutilizarEtiqueta(${idx})">🔄</button><button class="btn-action" onclick="editarEtiqueta(${idx})">✏️</button></td>` : ''}`;
+        
+        tr.innerHTML = `
+          <td><strong>${item.id}</strong></td>
+          <td><span class="badge badge-drawn">Gerada</span></td>
+          <td><span class="badge badge-used">Sim</span></td>
+          ${currentUserProfile && currentUserProfile.role === 'adm' ? 
+            `<td>
+              <button class="btn-action" onclick="reutilizarEtiqueta(${idx})">🔄</button>
+              <button class="btn-action" onclick="editarEtiqueta(${idx})">✏️</button>
+            </td>` : ''}
+        `;
         tbody.appendChild(tr);
       });
     }
@@ -171,12 +407,42 @@
       document.getElementById('stat-used').innerText = items.filter(i => i.used).length;
     }
 
-    function resetarContagens() { if (confirm("Resetar TUDO?")) { items.forEach(i => { i.drawn = false; i.used = false; i.timestamp = 0; }); saveData(); fecharModal('adm-panel-modal'); } }
-    async function fazerLogin() { const u = document.getElementById('login-username').value.trim().toLowerCase(); const p = document.getElementById('login-pass').value; const perfil = Object.values(userProfiles).find(x => x.username === u); if (!perfil) { alert("Usuário não encontrado!"); return; } try { await auth.signInWithEmailAndPassword(perfil.email, p); } catch(e) { alert("Erro: " + e.message); } }
-    async function fazerCadastro() { try { const e = document.getElementById('reg-email').value.trim().toLowerCase(); const cred = await secondaryAuth.createUserWithEmailAndPassword(e, document.getElementById('reg-pass').value); await db.ref('app_users/' + cred.user.uid).set({ uid: cred.user.uid, username: document.getElementById('reg-username').value.trim().toLowerCase(), email: e, role: document.getElementById('reg-role').value }); await secondaryAuth.signOut(); alert("Criado!"); fecharModal('register-screen'); } catch(err) { alert(err.message); } }
-    function recuperarSenha() { const u = document.getElementById('forgot-input').value.trim().toLowerCase(); const p = Object.values(userProfiles).find(x => x.username === u); if(p) auth.sendPasswordResetEmail(p.email).then(() => alert("E-mail enviado!")); else alert("Usuário não encontrado"); }
-    function fazerLogout() { auth.signOut(); }
-    async function importarPdf(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async function() { const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise; let txt = ''; for (let i = 1; i <= pdf.numPages; i++) { const p = await pdf.getPage(i); const t = await p.getTextContent(); txt += t.items.map(it => it.str).join(' ') + ' '; } [...new Set(txt.match(/\b\d{8,12}\b/g) || [])].forEach(m => { if (!items.some(i => i.id === m)) items.push({ id: m, drawn: false, used: false, timestamp: 0 }); }); saveData(); alert("Importação ok!"); fecharModal('adm-panel-modal'); }; reader.readAsArrayBuffer(file); }
+    function resetarContagens() { 
+      if (confirm("Resetar TUDO?")) { 
+        items.forEach(i => { i.drawn = false; i.used = false; i.timestamp = 0; }); 
+        saveData(); 
+        fecharModal('adm-panel-modal'); 
+      } 
+    }
+    
+    // Importar PDF
+    async function importarPdf(e) { 
+      const file = e.target.files[0]; 
+      if (!file) return; 
+      
+      const reader = new FileReader(); 
+      reader.onload = async function() { 
+        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise; 
+        let txt = ''; 
+        for (let i = 1; i <= pdf.numPages; i++) { 
+          const p = await pdf.getPage(i); 
+          const t = await p.getTextContent(); 
+          txt += t.items.map(it => it.str).join(' ') + ' '; 
+        } 
+        
+        const encontrados = [...new Set(txt.match(/\b\d{8,12}\b/g) || [])];
+        encontrados.forEach(m => { 
+          if (!items.some(i => i.id === m)) {
+            items.push({ id: m, drawn: false, used: false, timestamp: 0 }); 
+          }
+        }); 
+        
+        saveData(); 
+        alert("Importação concluída! " + encontrados.length + " etiquetas lidas."); 
+        fecharModal('adm-panel-modal'); 
+      }; 
+      reader.readAsArrayBuffer(file); 
+    }
   </script>
 </body>
 </html>

@@ -7,6 +7,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   
+  <link rel="manifest" href="manifest.json">
+
   <title>Etiquetas de trocas</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -21,9 +23,8 @@
     .container { max-width: 600px; margin: 0 auto; }
     h1 { text-align: center; color: #1a73e8; margin: 10px 0 20px 0; font-size: 1.8rem; }
     .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; text-align: center; }
+    .alert-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; text-align: center; font-size: 0.95rem; }
     .display-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; }
-    @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-    .anim-pop { animation: popIn 0.5s ease-out; }
     .display-number { font-size: 2.2rem; font-weight: 800; color: #1a73e8; letter-spacing: 2px; min-height: 50px; word-break: break-all; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
     .display-number:active:not(.placeholder-text) { transform: scale(0.95); opacity: 0.7; }
     .display-number.placeholder-text { font-size: 1.05rem; font-weight: 500; color: #777; letter-spacing: normal; cursor: default; }
@@ -51,28 +52,28 @@
     .badge-drawn { background-color: #e8f0fe; color: #1a73e8; }
     .badge-used { background-color: #e6f4ea; color: #137333; }
     .btn-action { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    .empty-msg { text-align: center; color: #777; padding: 20px; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
+  <!-- Telas de Login/ADM -->
   <div id="login-screen" class="screen-overlay full-bg">
     <div class="auth-card">
       <h1>Login</h1>
       <input type="text" id="login-username" placeholder="Nome de Usuário">
       <input type="password" id="login-pass" placeholder="Senha">
       <button class="btn" onclick="fazerLogin()">Entrar</button>
-      <div style="margin-top: 15px;">
-        <button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button>
-      </div>
+      <div style="margin-top: 15px;"><button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button></div>
     </div>
   </div>
-  
+
   <div id="adm-panel-modal" class="screen-overlay hidden">
     <div class="auth-card">
       <h1>Painel ADM</h1>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn btn-adm" onclick="abrirModal('register-screen')">+ Cadastrar Novo Usuário</button>
+        <button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button>
         <button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button>
         <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)">
         <button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button>
@@ -80,22 +81,19 @@
       </div>
     </div>
   </div>
-  
+
   <div id="register-screen" class="screen-overlay hidden">
     <div class="auth-card">
       <h1>Novo Usuário</h1>
       <input type="text" id="reg-username" placeholder="Nome do Usuário">
       <input type="email" id="reg-email" placeholder="E-mail do Usuário">
-      <input type="password" id="reg-pass" placeholder="Senha">
-      <select id="reg-role">
-        <option value="usuario">Perfil: Usuário Comum</option>
-        <option value="adm">Perfil: Administrador (ADM)</option>
-      </select>
+      <input type="password" id="reg-pass" placeholder="Senha (mínimo 6 caracteres)">
+      <select id="reg-role"><option value="usuario">Perfil: Usuário Comum</option><option value="adm">Perfil: Administrador (ADM)</option></select>
       <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button>
       <button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button>
     </div>
   </div>
-  
+
   <div id="forgot-screen" class="screen-overlay full-bg hidden">
     <div class="auth-card">
       <h1>Resetar Senha</h1>
@@ -105,6 +103,7 @@
     </div>
   </div>
 
+  <!-- Tela Principal -->
   <div id="app-screen" class="container hidden">
     <div class="user-bar">
       <span id="user-info">Usuário Logado</span>
@@ -115,9 +114,7 @@
     </div>
     <h1>Etiquetas de trocas</h1>
     <div class="card">
-      <div class="display-wrapper">
-        <div id="display" class="display-number placeholder-text" onclick="copiarDisplay()">Clique no botão abaixo para gerar sua etiqueta</div>
-      </div>
+      <div class="display-wrapper"><div id="display" class="display-number placeholder-text" onclick="copiarDisplay()">Clique no botão abaixo para gerar sua etiqueta</div></div>
       <button class="btn" onclick="sortear()">Gerar etiqueta</button>
     </div>
     <div class="card">
@@ -126,17 +123,10 @@
         <div>Disponíveis <span id="stat-available">0</span></div>
         <div>Utilizadas <span id="stat-used">0</span></div>
       </div>
-      <input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta..." oninput="renderTable()">
+      <input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta gerada..." oninput="renderTable()">
       <div class="table-container">
         <table>
-          <thead>
-            <tr>
-              <th>Número</th>
-              <th>Status</th>
-              <th>Utilizada</th>
-              <th id="th-acoes" class="hidden">Ações</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Número</th><th>Status</th><th>Utilizada</th><th id="th-acoes" class="hidden">Ações</th></tr></thead>
           <tbody id="table-body"></tbody>
         </table>
       </div>
@@ -151,79 +141,119 @@
     const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = secondaryApp.auth();
 
-    let userProfiles = {};
-    db.ref('app_users').on('value', (snap) => userProfiles = snap.val() || {});
-
-    const START_NUM = 1611004001; 
+    const START_NUM = 1611004001;
     const END_NUM = 1611004530;
-    let items = [];
-    let currentUserProfile = null;
+    let items = [], userProfiles = {}, currentUserProfile = null;
+    const TEMPO_LIMITE_MS = 8 * 60 * 1000;
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        if (!document.getElementById('login-screen').classList.contains('hidden')) fazerLogin();
-        else if (!document.getElementById('forgot-screen').classList.contains('hidden')) recuperarSenha();
-        else if (!document.getElementById('register-screen').classList.contains('hidden')) fazerCadastro();
-        else if (!document.getElementById('app-screen').classList.contains('hidden') && document.getElementById('adm-panel-modal').classList.contains('hidden')) {
-          if (document.activeElement.id !== 'search') sortear();
+    // --- Suporte global à tecla Enter ---
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        const loginScreen = document.getElementById('login-screen');
+        const forgotScreen = document.getElementById('forgot-screen');
+        const registerScreen = document.getElementById('register-screen');
+        const admModal = document.getElementById('adm-panel-modal');
+        const appScreen = document.getElementById('app-screen');
+
+        if (!loginScreen.classList.contains('hidden')) {
+          event.preventDefault();
+          fazerLogin();
+        } else if (!forgotScreen.classList.contains('hidden')) {
+          event.preventDefault();
+          recuperarSenha();
+        } else if (!registerScreen.classList.contains('hidden')) {
+          event.preventDefault();
+          fazerCadastro();
+        } else if (!appScreen.classList.contains('hidden') && admModal.classList.contains('hidden')) {
+          if (document.activeElement && document.activeElement.id === 'search') {
+            return; // Permite digitação e comportamento padrão na barra de pesquisa
+          }
+          event.preventDefault();
+          sortear();
         }
       }
     });
 
+    // --- Sessão e Inatividade ---
+    function registrarAtividade() { if (auth.currentUser) sessionStorage.setItem('last_activity', Date.now().toString()); }
+    function verificarInatividade() {
+      const ultimaAtividade = sessionStorage.getItem('last_activity');
+      if (ultimaAtividade && (Date.now() - parseInt(ultimaAtividade, 10) > TEMPO_LIMITE_MS)) { alert("Sessão expirada!"); fazerLogout(); return true; }
+      return false;
+    }
+    function iniciarTimerInatividade() { registrarAtividade(); ['click', 'mousemove', 'keypress', 'touchstart', 'scroll'].forEach(e => window.addEventListener(e, registrarAtividade, { passive: true })); }
+    setInterval(() => { if (auth.currentUser) verificarInatividade(); }, 10000);
+
+    // --- Firebase Auth & DB ---
+    db.ref('app_users').on('value', (snap) => userProfiles = snap.val() || {});
     auth.onAuthStateChanged((user) => {
       if (user) {
+        if (verificarInatividade()) return;
         db.ref('app_users/' + user.uid).once('value', (snap) => {
           currentUserProfile = snap.val() || { username: user.email.split('@')[0], role: 'usuario' };
-          document.getElementById('app-screen').classList.remove('hidden');
-          document.getElementById('user-info').innerText = currentUserProfile.username;
-          document.getElementById('btn-adm-menu').classList.toggle('hidden', currentUserProfile.role !== 'adm');
+          carregarPainel();
           iniciarSincronizacaoNumeros();
+          iniciarTimerInatividade();
         });
-      } else { 
-        document.getElementById('app-screen').classList.add('hidden'); 
-        mudarTela('login-screen'); 
-      }
+      } else { currentUserProfile = null; document.getElementById('app-screen').classList.add('hidden'); mudarTela('login-screen'); }
     });
 
     function iniciarSincronizacaoNumeros() {
       db.ref('blue_numbers_data').on('value', (snap) => {
         const data = snap.val();
-        if (data && Array.isArray(data)) {
-          items = data;
-        } else { 
-          items = []; 
-          for (let i = START_NUM; i <= END_NUM; i++) items.push({ id: i.toString(), drawn: false, used: false, timestamp: 0 }); 
-          saveData(); 
-        }
-        updateStats(); 
-        renderTable();
+        if (data && Array.isArray(data)) items = data;
+        else { items = []; for (let i = START_NUM; i <= END_NUM; i++) items.push({ id: i.toString(), drawn: false, used: false, timestamp: 0 }); saveData(); }
+        updateStats(); renderTable();
       });
     }
 
     function saveData() { db.ref('blue_numbers_data').set(items); }
+
+    // --- UI Helpers ---
     function mudarTela(id) { document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
     function abrirModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function fecharModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function carregarPainel() {
+      document.querySelectorAll('.screen-overlay').forEach(el => el.classList.add('hidden'));
+      document.getElementById('app-screen').classList.remove('hidden');
+      document.getElementById('user-info').innerText = currentUserProfile.username;
+      document.getElementById('btn-adm-menu').classList.toggle('hidden', currentUserProfile.role !== 'adm');
+    }
+
+    // --- Ações ---
+    async function fazerLogin() {
+      const u = document.getElementById('login-username').value.trim().toLowerCase();
+      const p = document.getElementById('login-pass').value;
+      const perfis = Object.values(userProfiles);
+      const perfil = perfis.find(x => x.username && x.username.toLowerCase() === u);
+      if (!perfil) { alert("Usuário não encontrado!"); return; }
+      try { await auth.signInWithEmailAndPassword(perfil.email, p); } catch(e) { alert("Erro ao logar: " + e.message); }
+    }
+
+    async function fazerCadastro() {
+      const u = document.getElementById('reg-username').value.trim().toLowerCase();
+      const e = document.getElementById('reg-email').value.trim().toLowerCase();
+      const p = document.getElementById('reg-pass').value;
+      const r = document.getElementById('reg-role').value;
+      try {
+        const cred = await secondaryAuth.createUserWithEmailAndPassword(e, p);
+        await db.ref('app_users/' + cred.user.uid).set({ uid: cred.user.uid, username: u, email: e, role: r });
+        await secondaryAuth.signOut(); alert("Usuário criado!"); fecharModal('register-screen');
+      } catch(err) { alert(err.message); }
+    }
 
     function sortear() {
       const disp = items.filter(i => !i.drawn);
       if (disp.length === 0) { alert("Sem etiquetas disponíveis!"); return; }
+      
+      // Adicionado pop-up de confirmação antes de gerar
       if (!confirm("Deseja realmente gerar uma nova etiqueta?")) return;
 
+      const escolhido = disp[Math.floor(Math.random() * disp.length)];
+      escolhido.drawn = true; escolhido.used = true; escolhido.timestamp = Date.now();
       const dispEl = document.getElementById('display');
-      dispEl.classList.remove('anim-pop'); 
-      dispEl.innerText = "..."; 
-
-      setTimeout(() => {
-        const escolhido = disp[Math.floor(Math.random() * disp.length)];
-        escolhido.drawn = true; 
-        escolhido.used = true; 
-        escolhido.timestamp = Date.now();
-        dispEl.innerText = escolhido.id;
-        dispEl.classList.remove('placeholder-text');
-        dispEl.classList.add('anim-pop');
-        saveData();
-      }, 500);
+      dispEl.innerText = escolhido.id; dispEl.classList.remove('placeholder-text');
+      saveData();
     }
 
     function copiarDisplay() {
@@ -235,17 +265,27 @@
       });
     }
 
-    function reutilizarEtiqueta(idx) { if (confirm("Reutilizar?")) { items[idx].drawn = false; items[idx].used = false; items[idx].timestamp = 0; saveData(); } }
-    function editarEtiqueta(idx) { const novo = prompt("Novo número:", items[idx].id); if (novo) { items[idx].id = novo; saveData(); } }
+    function reutilizarEtiqueta(idx) {
+      if (currentUserProfile.role !== 'adm') return;
+      if (confirm("Reutilizar esta etiqueta?")) { items[idx].drawn = false; items[idx].used = false; items[idx].timestamp = 0; saveData(); }
+    }
+
+    function editarEtiqueta(idx) {
+      if (currentUserProfile.role !== 'adm') return;
+      const novo = prompt("Novo número:", items[idx].id);
+      if (novo) { items[idx].id = novo; saveData(); }
+    }
 
     function renderTable() {
       const val = document.getElementById('search').value.toLowerCase();
       const tbody = document.getElementById('table-body');
       tbody.innerHTML = '';
-      items.filter(i => i.drawn && i.id.includes(val)).sort((a,b) => b.timestamp - a.timestamp).forEach((item) => {
+      const filtrados = items.filter(i => i.drawn && i.id.includes(val)).sort((a,b) => b.timestamp - a.timestamp);
+      filtrados.forEach((item) => {
         const idx = items.findIndex(i => i.id === item.id);
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><strong>${item.id}</strong></td><td><span class="badge badge-drawn">Gerada</span></td><td><span class="badge badge-used">Sim</span></td>${currentUserProfile.role === 'adm' ? `<td><button class="btn-action" onclick="reutilizarEtiqueta(${idx})">🔄</button><button class="btn-action" onclick="editarEtiqueta(${idx})">✏️</button></td>` : ''}`;
+        tr.innerHTML = `<td><strong>${item.id}</strong></td><td><span class="badge badge-drawn">Gerada</span></td><td><span class="badge badge-used">Sim</span></td>
+        ${currentUserProfile.role === 'adm' ? `<td><button class="btn-action" onclick="reutilizarEtiqueta(${idx})">🔄</button><button class="btn-action" onclick="editarEtiqueta(${idx})">✏️</button></td>` : ''}`;
         tbody.appendChild(tr);
       });
     }
@@ -256,72 +296,33 @@
       document.getElementById('stat-used').innerText = items.filter(i => i.used).length;
     }
 
-    function resetarContagens() { if (confirm("Resetar TUDO?")) { items.forEach(i => { i.drawn = false; i.used = false; i.timestamp = 0; }); saveData(); fecharModal('adm-panel-modal'); } }
-
-
-    // --- AQUI ESTÁ A ÚNICA CORREÇÃO FEITA ---
-    async function fazerLogin() { 
-      const u = document.getElementById('login-username').value.trim().toLowerCase(); 
-      const p = document.getElementById('login-pass').value; 
-      
-      try {
-        const snap = await db.ref('app_users').once('value');
-        const users = snap.val() || {};
-        const perfil = Object.values(users).find(x => x.username === u); 
-        
-        if (!perfil) { 
-          alert("Usuário não encontrado!"); 
-          return; 
-        } 
-        
-        await auth.signInWithEmailAndPassword(perfil.email, p); 
-      } catch(e) { 
-        alert("Erro: " + e.message); 
-      } 
-    }
-    // ----------------------------------------
-
-
-    async function fazerCadastro() { 
-      try { 
-        const e = document.getElementById('reg-email').value.trim().toLowerCase(); 
-        const cred = await secondaryAuth.createUserWithEmailAndPassword(e, document.getElementById('reg-pass').value); 
-        await db.ref('app_users/' + cred.user.uid).set({ uid: cred.user.uid, username: document.getElementById('reg-username').value.trim().toLowerCase(), email: e, role: document.getElementById('reg-role').value }); 
-        await secondaryAuth.signOut(); 
-        alert("Criado!"); 
-        fecharModal('register-screen'); 
-      } catch(err) { alert(err.message); } 
+    function resetarContagens() {
+      if (confirm("Resetar TUDO?")) { items.forEach(i => { i.drawn = false; i.used = false; i.timestamp = 0; }); saveData(); fecharModal('adm-panel-modal'); }
     }
 
-    function recuperarSenha() { 
-      const u = document.getElementById('forgot-input').value.trim().toLowerCase(); 
-      const p = Object.values(userProfiles).find(x => x.username === u); 
-      if(p) auth.sendPasswordResetEmail(p.email).then(() => alert("E-mail enviado!")); 
-      else alert("Usuário não encontrado"); 
+    async function importarPdf(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const txt = await page.getTextContent();
+          fullText += txt.items.map(it => it.str).join(' ') + ' ';
+        }
+        const matches = [...new Set(fullText.match(/\b\d{8,12}\b/g) || [])];
+        matches.forEach(m => { if (!items.some(i => i.id === m)) items.push({ id: m, drawn: false, used: false, timestamp: 0 }); });
+        saveData(); alert("Importação concluída!"); fecharModal('adm-panel-modal');
+      };
+      reader.readAsArrayBuffer(file);
     }
-
     function fazerLogout() { auth.signOut(); }
-
-    async function importarPdf(e) { 
-      const file = e.target.files[0]; 
-      if (!file) return; 
-      const reader = new FileReader(); 
-      reader.onload = async function() { 
-        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise; 
-        let txt = ''; 
-        for (let i = 1; i <= pdf.numPages; i++) { 
-          const p = await pdf.getPage(i); 
-          const t = await p.getTextContent(); 
-          txt += t.items.map(it => it.str).join(' ') + ' '; 
-        } 
-        [...new Set(txt.match(/\b\d{8,12}\b/g) || [])].forEach(m => { 
-          if (!items.some(i => i.id === m)) items.push({ id: m, drawn: false, used: false, timestamp: 0 }); 
-        }); 
-        saveData(); 
-        alert("Importação ok!"); 
-        fecharModal('adm-panel-modal'); 
-      }; 
-      reader.readAsArrayBuffer(file); 
+    function recuperarSenha() { 
+      const u = document.getElementById('forgot-input').value.trim().toLowerCase();
+      const p = Object.values(userProfiles).find(x => x.username === u);
+      if(p) auth.sendPasswordResetEmail(p.email).then(() => alert("E-mail enviado!")); else alert("Usuário não achado");
     }
   </script>
 </body>

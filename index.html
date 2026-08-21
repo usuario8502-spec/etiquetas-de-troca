@@ -23,7 +23,6 @@
     .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 15px; text-align: center; }
     .display-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 15px; }
     
-    /* Animação suave */
     @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
     .anim-pop { animation: popIn 0.5s ease-out; }
 
@@ -59,77 +58,16 @@
 </head>
 <body>
 
-  <div id="login-screen" class="screen-overlay full-bg">
-    <div class="auth-card">
-      <h1>Login</h1>
-      <input type="text" id="login-username" placeholder="Nome de Usuário">
-      <input type="password" id="login-pass" placeholder="Senha">
-      <button class="btn" onclick="fazerLogin()">Entrar</button>
-      <div style="margin-top: 15px;"><button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button></div>
-    </div>
-  </div>
-
-  <div id="adm-panel-modal" class="screen-overlay hidden">
-    <div class="auth-card">
-      <h1>Painel ADM</h1>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button>
-        <button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button>
-        <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)">
-        <button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button>
-        <button class="btn btn-secondary" onclick="fecharModal('adm-panel-modal')">Fechar Painel</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="register-screen" class="screen-overlay hidden">
-    <div class="auth-card">
-      <h1>Novo Usuário</h1>
-      <input type="text" id="reg-username" placeholder="Nome do Usuário">
-      <input type="email" id="reg-email" placeholder="E-mail do Usuário">
-      <input type="password" id="reg-pass" placeholder="Senha">
-      <select id="reg-role"><option value="usuario">Perfil: Usuário Comum</option><option value="adm">Perfil: Administrador (ADM)</option></select>
-      <button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button>
-      <button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button>
-    </div>
-  </div>
-
-  <div id="forgot-screen" class="screen-overlay full-bg hidden">
-    <div class="auth-card">
-      <h1>Resetar Senha</h1>
-      <input type="text" id="forgot-input" placeholder="Nome de Usuário">
-      <button class="btn" onclick="recuperarSenha()">Enviar E-mail</button>
-      <button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar</button>
-    </div>
-  </div>
+  <div id="login-screen" class="screen-overlay full-bg"><div class="auth-card"><h1>Login</h1><input type="text" id="login-username" placeholder="Nome de Usuário"><input type="password" id="login-pass" placeholder="Senha"><button class="btn" onclick="fazerLogin()">Entrar</button><div style="margin-top: 15px;"><button class="link-btn" onclick="mudarTela('forgot-screen')">Esqueci minha senha</button></div></div></div>
+  <div id="adm-panel-modal" class="screen-overlay hidden"><div class="auth-card"><h1>Painel ADM</h1><div style="display: flex; flex-direction: column; gap: 10px;"><button class="btn btn-adm" onclick="abrirCadastro()">+ Cadastrar Novo Usuário</button><button class="btn btn-info" onclick="document.getElementById('pdf-upload').click()">📄 Importar Etiquetas via PDF</button><input type="file" id="pdf-upload" accept="application/pdf" class="hidden" onchange="importarPdf(event)"><button class="btn btn-reset" onclick="resetarContagens()">Resetar Todas as Contagens</button><button class="btn btn-secondary" onclick="fecharModal('adm-panel-modal')">Fechar Painel</button></div></div></div>
+  <div id="register-screen" class="screen-overlay hidden"><div class="auth-card"><h1>Novo Usuário</h1><input type="text" id="reg-username" placeholder="Nome do Usuário"><input type="email" id="reg-email" placeholder="E-mail do Usuário"><input type="password" id="reg-pass" placeholder="Senha"><select id="reg-role"><option value="usuario">Perfil: Usuário Comum</option><option value="adm">Perfil: Administrador (ADM)</option></select><button class="btn btn-adm" onclick="fazerCadastro()">Criar Usuário</button><button class="btn btn-secondary" onclick="fecharModal('register-screen')">Voltar</button></div></div>
+  <div id="forgot-screen" class="screen-overlay full-bg hidden"><div class="auth-card"><h1>Resetar Senha</h1><input type="text" id="forgot-input" placeholder="Nome de Usuário"><button class="btn" onclick="recuperarSenha()">Enviar E-mail</button><button class="btn btn-secondary" onclick="mudarTela('login-screen')">Voltar</button></div></div>
 
   <div id="app-screen" class="container hidden">
-    <div class="user-bar">
-      <span id="user-info">Usuário Logado</span>
-      <div class="user-actions">
-        <button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button>
-        <button class="btn-user-bar" onclick="fazerLogout()">Sair</button>
-      </div>
-    </div>
+    <div class="user-bar"><span id="user-info">Usuário Logado</span><div class="user-actions"><button id="btn-adm-menu" class="btn-adm-panel hidden" onclick="abrirModal('adm-panel-modal')">Painel ADM</button><button class="btn-user-bar" onclick="fazerLogout()">Sair</button></div></div>
     <h1>Etiquetas de trocas</h1>
-    <div class="card">
-      <div class="display-wrapper"><div id="display" class="display-number placeholder-text" onclick="copiarDisplay()">Clique no botão abaixo para gerar sua etiqueta</div></div>
-      <button class="btn" onclick="sortear()">Gerar etiqueta</button>
-    </div>
-    <div class="card">
-      <div class="stats">
-        <div>Total <span id="stat-total">0</span></div>
-        <div>Disponíveis <span id="stat-available">0</span></div>
-        <div>Utilizadas <span id="stat-used">0</span></div>
-      </div>
-      <input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta..." oninput="renderTable()">
-      <div class="table-container">
-        <table>
-          <thead><tr><th>Número</th><th>Status</th><th>Utilizada</th><th id="th-acoes" class="hidden">Ações</th></tr></thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-    </div>
+    <div class="card"><div class="display-wrapper"><div id="display" class="display-number placeholder-text" onclick="copiarDisplay()">Clique no botão abaixo para gerar sua etiqueta</div></div><button class="btn" onclick="sortear()">Gerar etiqueta</button></div>
+    <div class="card"><div class="stats"><div>Total <span id="stat-total">0</span></div><div>Disponíveis <span id="stat-available">0</span></div><div>Utilizadas <span id="stat-used">0</span></div></div><input type="text" id="search" class="search-bar" placeholder="Buscar etiqueta..." oninput="renderTable()"><div class="table-container"><table><thead><tr><th>Número</th><th>Status</th><th>Utilizada</th><th id="th-acoes" class="hidden">Ações</th></tr></thead><tbody id="table-body"></tbody></table></div></div>
   </div>
 
   <script>
@@ -140,11 +78,13 @@
     const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = secondaryApp.auth();
 
-    const START_NUM = 1611004001;
-    const END_NUM = 1611004530;
-    let items = [], userProfiles = {}, currentUserProfile = null;
+    // Sincronização essencial para o login funcionar
+    let userProfiles = {};
+    db.ref('app_users').on('value', (snap) => userProfiles = snap.val() || {});
 
-    // Suporte global à tecla Enter
+    const START_NUM = 1611004001; const END_NUM = 1611004530;
+    let items = [], currentUserProfile = null;
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         if (!document.getElementById('login-screen').classList.contains('hidden')) fazerLogin();
@@ -165,10 +105,7 @@
           document.getElementById('btn-adm-menu').classList.toggle('hidden', currentUserProfile.role !== 'adm');
           iniciarSincronizacaoNumeros();
         });
-      } else {
-        document.getElementById('app-screen').classList.add('hidden');
-        mudarTela('login-screen');
-      }
+      } else { document.getElementById('app-screen').classList.add('hidden'); mudarTela('login-screen'); }
     });
 
     function iniciarSincronizacaoNumeros() {
@@ -188,21 +125,15 @@
     function sortear() {
       const disp = items.filter(i => !i.drawn);
       if (disp.length === 0) { alert("Sem etiquetas disponíveis!"); return; }
-      
-      // Confirmação solicitada
       if (!confirm("Deseja realmente gerar uma nova etiqueta?")) return;
 
       const dispEl = document.getElementById('display');
-      dispEl.classList.remove('anim-pop');
-      dispEl.innerText = "...";
+      dispEl.classList.remove('anim-pop'); 
+      dispEl.innerText = "..."; 
 
-      // Animação suave simulando o processamento
       setTimeout(() => {
         const escolhido = disp[Math.floor(Math.random() * disp.length)];
-        escolhido.drawn = true;
-        escolhido.used = true;
-        escolhido.timestamp = Date.now();
-        
+        escolhido.drawn = true; escolhido.used = true; escolhido.timestamp = Date.now();
         dispEl.innerText = escolhido.id;
         dispEl.classList.remove('placeholder-text');
         dispEl.classList.add('anim-pop');
@@ -214,25 +145,13 @@
       const el = document.getElementById('display');
       if (el.classList.contains('placeholder-text')) return;
       navigator.clipboard.writeText(el.innerText).then(() => {
-        const orig = el.innerText;
-        el.innerText = '✅ Copiado!';
+        const orig = el.innerText; el.innerText = '✅ Copiado!';
         setTimeout(() => el.innerText = orig, 1500);
       });
     }
 
-    function reutilizarEtiqueta(idx) {
-      if (confirm("Reutilizar esta etiqueta?")) {
-        items[idx].drawn = false;
-        items[idx].used = false;
-        items[idx].timestamp = 0;
-        saveData();
-      }
-    }
-
-    function editarEtiqueta(idx) {
-      const novo = prompt("Novo número:", items[idx].id);
-      if (novo) { items[idx].id = novo; saveData(); }
-    }
+    function reutilizarEtiqueta(idx) { if (confirm("Reutilizar?")) { items[idx].drawn = false; items[idx].used = false; items[idx].timestamp = 0; saveData(); } }
+    function editarEtiqueta(idx) { const novo = prompt("Novo número:", items[idx].id); if (novo) { items[idx].id = novo; saveData(); } }
 
     function renderTable() {
       const val = document.getElementById('search').value.toLowerCase();
@@ -241,8 +160,7 @@
       items.filter(i => i.drawn && i.id.includes(val)).sort((a,b) => b.timestamp - a.timestamp).forEach((item) => {
         const idx = items.findIndex(i => i.id === item.id);
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><strong>${item.id}</strong></td><td><span class="badge badge-drawn">Gerada</span></td><td><span class="badge badge-used">Sim</span></td>
-        ${currentUserProfile.role === 'adm' ? `<td><button class="btn-action" onclick="reutilizarEtiqueta(${idx})">🔄</button><button class="btn-action" onclick="editarEtiqueta(${idx})">✏️</button></td>` : ''}`;
+        tr.innerHTML = `<td><strong>${item.id}</strong></td><td><span class="badge badge-drawn">Gerada</span></td><td><span class="badge badge-used">Sim</span></td>${currentUserProfile.role === 'adm' ? `<td><button class="btn-action" onclick="reutilizarEtiqueta(${idx})">🔄</button><button class="btn-action" onclick="editarEtiqueta(${idx})">✏️</button></td>` : ''}`;
         tbody.appendChild(tr);
       });
     }
@@ -253,68 +171,12 @@
       document.getElementById('stat-used').innerText = items.filter(i => i.used).length;
     }
 
-    function resetarContagens() {
-      if (confirm("Resetar TUDO?")) {
-        items.forEach(i => { i.drawn = false; i.used = false; i.timestamp = 0; });
-        saveData();
-        fecharModal('adm-panel-modal');
-      }
-    }
-
-    async function fazerLogin() {
-      const u = document.getElementById('login-username').value.trim().toLowerCase();
-      const p = document.getElementById('login-pass').value;
-      const perfil = Object.values(userProfiles).find(x => x.username === u);
-      if (!perfil) { alert("Usuário não encontrado!"); return; }
-      try { await auth.signInWithEmailAndPassword(perfil.email, p); } catch(e) { alert("Erro: " + e.message); }
-    }
-
-    async function fazerCadastro() {
-      try {
-        const e = document.getElementById('reg-email').value.trim().toLowerCase();
-        const cred = await secondaryAuth.createUserWithEmailAndPassword(e, document.getElementById('reg-pass').value);
-        await db.ref('app_users/' + cred.user.uid).set({
-          uid: cred.user.uid,
-          username: document.getElementById('reg-username').value.trim().toLowerCase(),
-          email: e,
-          role: document.getElementById('reg-role').value
-        });
-        await secondaryAuth.signOut();
-        alert("Criado com sucesso!");
-        fecharModal('register-screen');
-      } catch(err) { alert(err.message); }
-    }
-
-    function recuperarSenha() {
-      const u = document.getElementById('forgot-input').value.trim().toLowerCase();
-      const p = Object.values(userProfiles).find(x => x.username === u);
-      if(p) auth.sendPasswordResetEmail(p.email).then(() => alert("E-mail de recuperação enviado!"));
-      else alert("Usuário não encontrado");
-    }
-
+    function resetarContagens() { if (confirm("Resetar TUDO?")) { items.forEach(i => { i.drawn = false; i.used = false; i.timestamp = 0; }); saveData(); fecharModal('adm-panel-modal'); } }
+    async function fazerLogin() { const u = document.getElementById('login-username').value.trim().toLowerCase(); const p = document.getElementById('login-pass').value; const perfil = Object.values(userProfiles).find(x => x.username === u); if (!perfil) { alert("Usuário não encontrado!"); return; } try { await auth.signInWithEmailAndPassword(perfil.email, p); } catch(e) { alert("Erro: " + e.message); } }
+    async function fazerCadastro() { try { const e = document.getElementById('reg-email').value.trim().toLowerCase(); const cred = await secondaryAuth.createUserWithEmailAndPassword(e, document.getElementById('reg-pass').value); await db.ref('app_users/' + cred.user.uid).set({ uid: cred.user.uid, username: document.getElementById('reg-username').value.trim().toLowerCase(), email: e, role: document.getElementById('reg-role').value }); await secondaryAuth.signOut(); alert("Criado!"); fecharModal('register-screen'); } catch(err) { alert(err.message); } }
+    function recuperarSenha() { const u = document.getElementById('forgot-input').value.trim().toLowerCase(); const p = Object.values(userProfiles).find(x => x.username === u); if(p) auth.sendPasswordResetEmail(p.email).then(() => alert("E-mail enviado!")); else alert("Usuário não encontrado"); }
     function fazerLogout() { auth.signOut(); }
-
-    async function importarPdf(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function() {
-        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
-        let txt = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const p = await pdf.getPage(i);
-          const t = await p.getTextContent();
-          txt += t.items.map(it => it.str).join(' ') + ' ';
-        }
-        [...new Set(txt.match(/\b\d{8,12}\b/g) || [])].forEach(m => {
-          if (!items.some(i => i.id === m)) items.push({ id: m, drawn: false, used: false, timestamp: 0 });
-        });
-        saveData();
-        alert("Importação concluída!");
-        fecharModal('adm-panel-modal');
-      };
-      reader.readAsArrayBuffer(file);
-    }
+    async function importarPdf(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async function() { const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise; let txt = ''; for (let i = 1; i <= pdf.numPages; i++) { const p = await pdf.getPage(i); const t = await p.getTextContent(); txt += t.items.map(it => it.str).join(' ') + ' '; } [...new Set(txt.match(/\b\d{8,12}\b/g) || [])].forEach(m => { if (!items.some(i => i.id === m)) items.push({ id: m, drawn: false, used: false, timestamp: 0 }); }); saveData(); alert("Importação ok!"); fecharModal('adm-panel-modal'); }; reader.readAsArrayBuffer(file); }
   </script>
 </body>
 </html>
